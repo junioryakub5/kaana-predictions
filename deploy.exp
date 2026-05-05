@@ -38,7 +38,7 @@ expect "# " {
 expect "# " {
     send {cat > /var/www/boomtips25/backend/.env << 'ENV'
 PORT=5002
-PAYSTACK_SECRET_KEY=sk_test_129ca3e1eda9cff4cdecb22d73649c26ecfed50f
+PAYSTACK_SECRET_KEY=REPLACE_WITH_LIVE_SECRET_KEY
 ADMIN_TOKEN=boomtips25-admin-2024
 CLIENT_URL=*
 SUPABASE_URL=

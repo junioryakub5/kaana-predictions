@@ -9,7 +9,7 @@ export PATH=/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:$PATH
 BACKEND_DIR="$(cd "$(dirname "$0")/backend" && pwd)"
 FRONTEND_DIR="$(cd "$(dirname "$0")/frontend" && pwd)"
 ENV_LOCAL="$FRONTEND_DIR/.env.local"
-PAYSTACK_KEY="pk_test_5ea5e36fe127df1e71403fc3d5a558c326767c01"
+PAYSTACK_KEY="pk_live_cea98412532c144d295ac5f848ab73509bd20330"
 
 echo ""
 echo "🔥 BoomTips25 — Starting up..."

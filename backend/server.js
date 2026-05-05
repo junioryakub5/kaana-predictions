@@ -255,13 +255,31 @@ const db = {
   },
   async stats() {
     if (supabase) {
-      const [{ count:total }, { count:active }, { count:completed }, { data:payments }] = await Promise.all([
+      const [{ count:total }, { count:active }, { count:completed }] = await Promise.all([
         supabase.from('predictions').select('*',{count:'exact',head:true}),
         supabase.from('predictions').select('*',{count:'exact',head:true}).eq('status','active'),
         supabase.from('predictions').select('*',{count:'exact',head:true}).eq('status','completed'),
-        supabase.from('payments').select('*').eq('status','success'),
       ]);
-      return { total, active, completed, payments:payments.map(toMoney) };
+
+      // Paginate through ALL successful payments — bypasses Supabase's 1,000-row default cap
+      const PAGE = 1000;
+      let allPayments = [];
+      let from = 0;
+      while (true) {
+        const { data, error } = await supabase
+          .from('payments')
+          .select('*')
+          .eq('status', 'success')
+          .order('created_at', { ascending: false })
+          .range(from, from + PAGE - 1);
+        if (error) throw error;
+        if (!data || data.length === 0) break;
+        allPayments = allPayments.concat(data.map(toMoney));
+        if (data.length < PAGE) break; // last page reached
+        from += PAGE;
+      }
+
+      return { total, active, completed, payments: allPayments };
     }
     const payments = memPayments.filter(p => p.status==='success');
     return {

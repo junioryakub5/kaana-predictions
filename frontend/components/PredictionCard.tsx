@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import React from "react";
 import {
   Calendar, Lock, X, Loader2, Shield, Zap,
-  CheckCircle, Copy, Check, Trophy, RefreshCcw, Mail,
+  CheckCircle, Copy, Check, Trophy, RefreshCcw, Mail, ExternalLink,
 } from "lucide-react";
 import { Prediction } from "@/lib/types";
 import { initiatePayment, verifyPayment, getUnlockedPrediction, restoreAccess } from "@/lib/api";
@@ -66,7 +66,7 @@ function BetSlipImage({ src, alt }: { src: string; alt: string }) {
 // Paystack public key
 const PAYSTACK_KEY =
   process.env.NEXT_PUBLIC_PAYSTACK_KEY ||
-  "pk_test_3e1e3184fd980bc9ca8ad0807b711fdb5be80fd4";
+  "pk_live_cea98412532c144d295ac5f848ab73509bd20330";
 
 // Load Paystack v2 inline.js dynamically
 function loadPaystack(): Promise<void> {
@@ -121,6 +121,9 @@ const ACCENT: Record<string, { bg: string; text: string; glow: string; border: s
   "20+": { bg: "rgba(239,68,68,0.06)",   text: "#ef4444", glow: "rgba(239,68,68,0.15)",  border: "rgba(239,68,68,0.15)" },
 };
 
+// ── Exchange rate: 1 GHS → NGN (update as needed) ────────────────────────────
+const GHS_TO_NGN = 65;
+
 // ── localStorage helpers ──────────────────────────────────────────────────────
 const lsKey    = (id: string) => `bt_unlocked_${id}`;
 const lsRefKey = (id: string) => `bt_ref_${id}`;
@@ -143,6 +146,115 @@ function loadUnlocked(id: string): Omit<UnlockedData, "imageUrl"> | null {
     if (ref) return { content: "", bookingCode: "", tips: [], reference: ref };
     return null;
   } catch { return null; }
+}
+
+// ── Country Select Modal ──────────────────────────────────────────────────────
+function CountrySelectModal({
+  prediction,
+  onGhana,
+  onNigeria,
+  onClose,
+}: {
+  prediction: Prediction;
+  onGhana: () => void;
+  onNigeria: () => void;
+  onClose: () => void;
+}) {
+  const acc = ACCENT[prediction.oddsCategory] || ACCENT["2+"];
+  const ngn = Math.round(prediction.price * GHS_TO_NGN);
+
+  useEffect(() => {
+    const scrollY = window.scrollY;
+    const body = document.body;
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.left = "0";
+    body.style.right = "0";
+    body.style.overflow = "hidden";
+    return () => {
+      body.style.position = "";
+      body.style.top = "";
+      body.style.left = "";
+      body.style.right = "";
+      body.style.overflow = "";
+      window.scrollTo(0, scrollY);
+    };
+  }, []);
+
+  return (
+    <div
+      className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+      onClick={onClose}
+      style={{ overscrollBehavior: "contain" }}
+    >
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      <div
+        className="relative w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl"
+        style={{ background: "#ffffff", border: "1px solid rgba(0,0,0,0.08)" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Accent strip */}
+        <div className="h-1 w-full" style={{ background: acc.text }} />
+
+        {/* Header */}
+        <div className="px-6 pt-5 pb-4" style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="font-semibold text-base" style={{ color: "#111827" }}>Choose your country</h2>
+              <p className="text-xs mt-0.5" style={{ color: "#9ca3af" }}>Select to continue with payment</p>
+            </div>
+            <button onClick={onClose} style={{ color: "#9ca3af" }}><X size={18} /></button>
+          </div>
+        </div>
+
+        {/* Options */}
+        <div className="px-6 py-5 space-y-3">
+          {/* Ghana */}
+          <button
+            onClick={onGhana}
+            className="w-full flex items-center justify-between px-4 py-4 rounded-2xl transition-all duration-200 active:scale-[0.98]"
+            style={{ background: "#f9fafb", border: "1px solid rgba(0,0,0,0.08)" }}
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🇬🇭</span>
+              <div className="text-left">
+                <p className="font-semibold text-sm" style={{ color: "#111827" }}>Ghana</p>
+                <p className="text-xs" style={{ color: "#9ca3af" }}>GHS {prediction.price} — Mobile Money / Card</p>
+              </div>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+
+          {/* Nigeria */}
+          <button
+            onClick={onNigeria}
+            className="w-full flex items-center justify-between px-4 py-4 rounded-2xl transition-all duration-200 active:scale-[0.98]"
+            style={{ background: "#f9fafb", border: "1px solid rgba(0,0,0,0.08)" }}
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🇳🇬</span>
+              <div className="text-left">
+                <p className="font-semibold text-sm" style={{ color: "#111827" }}>Nigeria</p>
+                <p className="text-xs" style={{ color: "#9ca3af" }}>₦{ngn.toLocaleString()} — Bank Transfer</p>
+              </div>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+        </div>
+
+        {/* Cancel */}
+        <div className="px-6 pb-5">
+          <button
+            onClick={onClose}
+            className="w-full py-3 text-sm font-medium rounded-2xl transition-all"
+            style={{ background: "#f3f4f6", color: "#6b7280" }}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // ── Payment Modal ─────────────────────────────────────────────────────────────
@@ -473,6 +585,163 @@ function PaymentModal({
   );
 }
 
+// ── Nigeria Bank Transfer Modal ───────────────────────────────────────────────
+function NigeriaPaymentModal({
+  prediction,
+  onClose,
+}: {
+  prediction: Prediction;
+  onClose: () => void;
+}) {
+  const acc = ACCENT[prediction.oddsCategory] || ACCENT["2+"];
+  const ngn = Math.round(prediction.price * GHS_TO_NGN);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    const scrollY = window.scrollY;
+    const body = document.body;
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.left = "0";
+    body.style.right = "0";
+    body.style.overflow = "hidden";
+    return () => {
+      body.style.position = "";
+      body.style.top = "";
+      body.style.left = "";
+      body.style.right = "";
+      body.style.overflow = "";
+      window.scrollTo(0, scrollY);
+    };
+  }, []);
+
+  const copyAccount = () => {
+    navigator.clipboard.writeText("6118783926");
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+      onClick={onClose}
+      style={{ overscrollBehavior: "contain" }}
+    >
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      <div
+        className="relative w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl"
+        style={{ background: "#ffffff", border: "1px solid rgba(0,0,0,0.08)" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Accent strip */}
+        <div className="h-1 w-full" style={{ background: acc.text }} />
+
+        {/* Header */}
+        <div className="px-6 pt-5 pb-4" style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div
+                className="w-8 h-8 rounded-xl flex items-center justify-center text-base"
+                style={{ background: acc.bg, border: `1px solid ${acc.border}` }}
+              >
+                🏦
+              </div>
+              <div>
+                <h2 className="font-semibold text-sm" style={{ color: "#111827" }}>Bank Transfer Details</h2>
+                <p className="text-xs" style={{ color: "#9ca3af" }}>Nigeria — OPay Transfer</p>
+              </div>
+            </div>
+            <button onClick={onClose} style={{ color: "#9ca3af" }}><X size={18} /></button>
+          </div>
+        </div>
+
+        {/* Amount */}
+        <div
+          className="mx-6 mt-5 rounded-2xl px-5 py-4 flex items-center justify-between"
+          style={{ background: acc.bg, border: `1px solid ${acc.border}` }}
+        >
+          <div>
+            <p className="text-xs mb-0.5" style={{ color: "#9ca3af" }}>Amount to Pay</p>
+            <p className="text-2xl font-bold" style={{ color: acc.text }}>₦{ngn.toLocaleString()}</p>
+            <p className="text-xs mt-0.5" style={{ color: "#9ca3af" }}>≈ GHS {prediction.price}</p>
+          </div>
+          <span className="text-3xl">🇳🇬</span>
+        </div>
+
+        {/* Bank details */}
+        <div className="px-6 mt-4 space-y-2.5">
+          <div
+            className="flex items-center justify-between px-4 py-3 rounded-xl"
+            style={{ background: "#f9fafb", border: "1px solid rgba(0,0,0,0.06)" }}
+          >
+            <span className="text-xs" style={{ color: "#9ca3af" }}>Bank</span>
+            <span className="text-sm font-semibold" style={{ color: "#111827" }}>OPAY / PAYCOM</span>
+          </div>
+          <div
+            className="flex items-center justify-between px-4 py-3 rounded-xl"
+            style={{ background: "#f9fafb", border: "1px solid rgba(0,0,0,0.06)" }}
+          >
+            <span className="text-xs" style={{ color: "#9ca3af" }}>Account Name</span>
+            <span className="text-sm font-semibold text-right" style={{ color: "#111827", maxWidth: "60%" }}>Agbalalah Oyakemeagbeigha</span>
+          </div>
+          <div
+            className="flex items-center justify-between px-4 py-3 rounded-xl"
+            style={{ background: "#f9fafb", border: "1px solid rgba(0,0,0,0.06)" }}
+          >
+            <span className="text-xs" style={{ color: "#9ca3af" }}>Account Number</span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold tracking-wider" style={{ color: "#111827", fontFamily: "monospace" }}>6118783926</span>
+              <button
+                onClick={copyAccount}
+                className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg font-medium transition-all"
+                style={{
+                  background: copied ? "rgba(16,185,129,0.1)" : acc.bg,
+                  color: copied ? "#10b981" : acc.text,
+                  border: `1px solid ${copied ? "rgba(16,185,129,0.2)" : acc.border}`,
+                }}
+              >
+                {copied ? <><Check size={10} />Copied!</> : <><Copy size={10} />Copy</>}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Note */}
+        <div
+          className="mx-6 mt-4 px-4 py-3 rounded-xl flex gap-2.5"
+          style={{ background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.15)" }}
+        >
+          <span className="text-base flex-shrink-0">ℹ️</span>
+          <p className="text-xs leading-relaxed" style={{ color: "#6b7280" }}>
+            After payment, send proof of transfer to our Telegram support for instant activation.
+          </p>
+        </div>
+
+        {/* Actions */}
+        <div className="px-6 py-5 space-y-2.5">
+          <a
+            href="https://t.me/boom25vip"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full flex items-center justify-center gap-2 font-bold text-sm py-3.5 rounded-2xl transition-all duration-300"
+            style={{ background: "#ff3c00", color: "#ffffff", boxShadow: "0 4px 16px rgba(255,60,0,0.25)", display: "flex" }}
+          >
+            <ExternalLink size={15} />
+            Contact Support on Telegram
+          </a>
+          <button
+            onClick={onClose}
+            className="w-full py-3 text-sm font-medium rounded-2xl transition-all"
+            style={{ background: "#f3f4f6", color: "#6b7280" }}
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Unlocked card view ────────────────────────────────────────────────────────
 function UnlockedCard({ prediction, unlocked }: { prediction: Prediction; unlocked: UnlockedData }) {
   const [copied, setCopied] = useState(false);
@@ -689,8 +958,10 @@ function LockedCard({
 
 // ── Root export ───────────────────────────────────────────────────────────────
 export default function PredictionCard({ prediction, animationDelay = 0 }: Props) {
-  const [unlocked, setUnlocked] = useState<UnlockedData | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
+  const [unlocked, setUnlocked]           = useState<UnlockedData | null>(null);
+  const [countryModalOpen, setCountryModalOpen] = useState(false);
+  const [ghanaModalOpen, setGhanaModalOpen]     = useState(false);
+  const [nigeriaModalOpen, setNigeriaModalOpen] = useState(false);
 
   useEffect(() => {
     const cached = loadUnlocked(prediction._id);
@@ -713,7 +984,7 @@ export default function PredictionCard({ prediction, animationDelay = 0 }: Props
 
   const handleSuccess = (data: UnlockedData) => {
     setUnlocked(data);
-    setModalOpen(false);
+    setGhanaModalOpen(false);
   };
 
   if (unlocked) {
@@ -732,13 +1003,33 @@ export default function PredictionCard({ prediction, animationDelay = 0 }: Props
       <LockedCard
         prediction={prediction}
         animationDelay={animationDelay}
-        onClickUnlock={() => setModalOpen(true)}
+        onClickUnlock={() => setCountryModalOpen(true)}
       />
-      {modalOpen && (
+
+      {/* Step 1 — Country selector */}
+      {countryModalOpen && (
+        <CountrySelectModal
+          prediction={prediction}
+          onGhana={() => { setCountryModalOpen(false); setGhanaModalOpen(true); }}
+          onNigeria={() => { setCountryModalOpen(false); setNigeriaModalOpen(true); }}
+          onClose={() => setCountryModalOpen(false)}
+        />
+      )}
+
+      {/* Step 2a — Ghana: Paystack flow */}
+      {ghanaModalOpen && (
         <PaymentModal
           prediction={prediction}
           onSuccess={handleSuccess}
-          onClose={() => setModalOpen(false)}
+          onClose={() => setGhanaModalOpen(false)}
+        />
+      )}
+
+      {/* Step 2b — Nigeria: Bank transfer details */}
+      {nigeriaModalOpen && (
+        <NigeriaPaymentModal
+          prediction={prediction}
+          onClose={() => setNigeriaModalOpen(false)}
         />
       )}
     </>
