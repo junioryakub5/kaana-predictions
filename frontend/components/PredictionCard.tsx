@@ -144,7 +144,7 @@ function loadUnlocked(id: string): Omit<UnlockedData, "imageUrl"> | null {
     const raw = localStorage.getItem(lsKey(id));
     if (raw) return JSON.parse(raw) as Omit<UnlockedData, "imageUrl">;
     const ref = localStorage.getItem(lsRefKey(id));
-    if (ref) return { content: "", bookingCode: "", tips: [], reference: ref };
+    if (ref) return { content: "", bookingCode: "", tips: [], reference: ref, proofImageUrl: "" };
     return null;
   } catch { return null; }
 }
