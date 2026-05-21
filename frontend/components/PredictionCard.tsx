@@ -723,7 +723,7 @@ function NigeriaPaymentModal({
         {/* Actions */}
         <div className="px-6 py-5 space-y-2.5">
           <a
-            href="https://t.me/boom25vip"
+            href="https://t.me/boomVip25"
             target="_blank"
             rel="noopener noreferrer"
             className="w-full flex items-center justify-center gap-2 font-bold text-sm py-3.5 rounded-2xl transition-all duration-300"
