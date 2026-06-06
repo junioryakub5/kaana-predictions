@@ -32,17 +32,23 @@ type Section = "overview" | "slips" | "payments";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function StatusBadge({ status }: { status: string }) {
-  const colors: Record<string, string> = {
-    active: "bg-amber-100 text-amber-700 border-amber-200",
-    completed: "bg-indigo-100 text-indigo-700 border-indigo-200",
-    success: "bg-emerald-100 text-emerald-700 border-emerald-200",
-    pending: "bg-amber-100 text-amber-700 border-amber-200",
-    failed: "bg-red-100 text-red-700 border-red-200",
-    win: "bg-emerald-100 text-emerald-700 border-emerald-200",
-    loss: "bg-red-100 text-red-700 border-red-200",
+  const styles: Record<string, React.CSSProperties> = {
+    active: { background: "rgba(245,158,11,0.12)", color: "#f59e0b", border: "1px solid rgba(245,158,11,0.25)" },
+    completed: { background: "rgba(99,102,241,0.12)", color: "#818cf8", border: "1px solid rgba(99,102,241,0.25)" },
+    success: { background: "rgba(16,185,129,0.12)", color: "#10b981", border: "1px solid rgba(16,185,129,0.25)" },
+    pending: { background: "rgba(245,158,11,0.12)", color: "#f59e0b", border: "1px solid rgba(245,158,11,0.25)" },
+    failed: { background: "rgba(239,68,68,0.12)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.25)" },
+    win: { background: "rgba(16,185,129,0.12)", color: "#10b981", border: "1px solid rgba(16,185,129,0.25)" },
+    loss: { background: "rgba(239,68,68,0.12)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.25)" },
+  };
+  const fallback: React.CSSProperties = {
+    background: "rgba(255,255,255,0.06)", color: "#a1a1aa", border: "1px solid rgba(255,255,255,0.1)",
   };
   return (
-    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${colors[status] ?? "bg-gray-100 text-gray-600 border-gray-200"}`}>
+    <span
+      className="text-xs font-semibold px-2.5 py-1 rounded-full"
+      style={styles[status] ?? fallback}
+    >
       {status}
     </span>
   );
@@ -50,23 +56,50 @@ function StatusBadge({ status }: { status: string }) {
 
 function OddsBadge({ cat }: { cat: string }) {
   const colors: Record<string, string> = {
-    "2+": "text-orange-600", "5+": "text-amber-400",
-    "10+": "text-violet-400", "20+": "text-red-400",
+    "2+": "#ff4500", "5+": "#f59e0b",
+    "10+": "#a78bfa", "20+": "#ef4444",
   };
-  return <span className={`font-bold ${colors[cat] ?? "text-orange-600"}`}>{cat}</span>;
+  return (
+    <span className="font-bold text-xs" style={{ color: colors[cat] ?? "#ff4500" }}>
+      {cat}
+    </span>
+  );
 }
 
 function Pagination({ page, pages, onPage }: { page: number; pages: number; onPage: (n: number) => void }) {
   if (pages <= 1) return null;
   return (
-    <div className="flex items-center justify-center gap-3 mt-6">
-      <button onClick={() => onPage(page - 1)} disabled={page <= 1}
-        className="admin-btn-ghost flex items-center gap-1 disabled:opacity-40">
+    <div className="flex items-center justify-center gap-2 mt-6">
+      <button
+        onClick={() => onPage(page - 1)}
+        disabled={page <= 1}
+        className="flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-medium transition-colors disabled:opacity-40"
+        style={{ background: "#1a1a24", color: "#a1a1aa", border: "1px solid rgba(255,255,255,0.07)" }}
+      >
         <ChevronLeft size={15} /> Previous
       </button>
-      <span className="text-sm text-gray-500">Page {page} of {pages}</span>
-      <button onClick={() => onPage(page + 1)} disabled={page >= pages}
-        className="admin-btn-ghost flex items-center gap-1 disabled:opacity-40">
+      <div className="flex items-center gap-1">
+        {Array.from({ length: pages }, (_, i) => i + 1).map((n) => (
+          <button
+            key={n}
+            onClick={() => onPage(n)}
+            className="w-9 h-9 rounded-xl text-sm font-semibold transition-colors"
+            style={
+              n === page
+                ? { background: "#ff4500", color: "#ffffff", border: "1px solid #ff4500" }
+                : { background: "#1a1a24", color: "#52525b", border: "1px solid rgba(255,255,255,0.07)" }
+            }
+          >
+            {n}
+          </button>
+        ))}
+      </div>
+      <button
+        onClick={() => onPage(page + 1)}
+        disabled={page >= pages}
+        className="flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-medium transition-colors disabled:opacity-40"
+        style={{ background: "#1a1a24", color: "#a1a1aa", border: "1px solid rgba(255,255,255,0.07)" }}
+      >
         Next <ChevronRight size={15} />
       </button>
     </div>
@@ -95,117 +128,117 @@ function LoginScreen({ onLogin }: { onLogin: (token: string) => void }) {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4"
-      style={{
-        background: "#ffffff",
-      }}
+      className="min-h-screen flex flex-col items-center justify-center p-4"
+      style={{ background: "#09090b" }}
     >
       <div className="w-full max-w-sm">
-        {/* Brand */}
-        <div className="text-center mb-10">
-          <span className="block mb-4">
-            <div
-              className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto"
-              style={{
-                background: "rgba(255,60,0,0.06)",
-                border: "1px solid rgba(255,60,0,0.12)",
-              }}
-            >
-              <Zap size={28} style={{ color: "#ff3c00" }} strokeWidth={2} />
-            </div>
-          </span>
-          <h1
-            className="mb-1"
-            style={{
-              fontFamily: "'Sora', sans-serif",
-              fontWeight: 700,
-              fontSize: "2rem",
-              letterSpacing: "-0.03em",
-              color: "#111827",
-            }}
-          >
-            Admin{" "}
-            <span style={{ background: "linear-gradient(135deg, #ff3c00, #ff6633)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
-              Access
-            </span>
-          </h1>
-          <p className="text-sm" style={{ color: "#9ca3af" }}>Enter your admin token to continue</p>
-        </div>
-
         {/* Card */}
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4 p-6 rounded-2xl"
+        <div
+          className="rounded-2xl overflow-hidden"
           style={{
-            background: "#ffffff",
-            border: "1px solid rgba(0,0,0,0.08)",
-            boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
+            background: "#111117",
+            border: "1px solid rgba(255,255,255,0.08)",
           }}
         >
-          <div>
-            <label
-              className="block text-xs font-bold uppercase tracking-widest mb-2"
-              style={{ color: "rgba(255,60,0,0.6)", fontFamily: "'Sora', sans-serif" }}
-            >
-              Admin Token
-            </label>
-            <div className="relative">
-              <input
-                type={show ? "text" : "password"}
-                value={token}
-                onChange={e => setToken(e.target.value)}
-                placeholder="Enter admin token..."
-                autoFocus
-                className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none transition-all duration-200 pr-10"
+          {/* Top accent bar */}
+          <div style={{ height: "3px", background: "#ff4500" }} />
+
+          <div className="p-8">
+            {/* Logo area */}
+            <div className="flex flex-col items-center mb-8">
+              <div
+                className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
                 style={{
-                  background: "#ffffff",
-                  border: "1.5px solid rgba(0,0,0,0.1)",
-                  caretColor: "#ff3c00",
-                  color: "#111827",
+                  background: "rgba(255,69,0,0.1)",
+                  border: "1px solid rgba(255,69,0,0.2)",
                 }}
-                onFocus={e => { e.target.style.borderColor = "#ff3c00"; e.target.style.boxShadow = "0 0 0 3px rgba(255,60,0,0.08)"; }}
-                onBlur={e => { e.target.style.borderColor = "rgba(0,0,0,0.1)"; e.target.style.boxShadow = "none"; }}
-              />
-              <button
-                type="button"
-                onClick={() => setShow(!show)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
-                style={{ color: "#9ca3af" }}
-                onMouseEnter={e => ((e.target as HTMLElement).style.color = "#ff3c00")}
-                onMouseLeave={e => ((e.target as HTMLElement).style.color = "#9ca3af")}
               >
-                {show ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
+                <Zap size={26} style={{ color: "#ff4500" }} strokeWidth={2.2} />
+              </div>
+              <div className="text-center">
+                <div
+                  className="text-2xl font-bold leading-none"
+                  style={{ fontFamily: "'Sora', sans-serif", letterSpacing: "-0.03em" }}
+                >
+                  <span style={{ color: "#f4f4f5" }}>Kaana</span>
+                  <span style={{ color: "#ff4500" }}> Predictions</span>
+                </div>
+                <div
+                  className="text-xs mt-1.5 font-medium tracking-widest uppercase"
+                  style={{ color: "#52525b" }}
+                >
+                  Admin Portal
+                </div>
+              </div>
             </div>
+
+            {/* Form heading */}
+            <div className="mb-6">
+              <h1
+                className="text-xl font-bold mb-1"
+                style={{ color: "#f4f4f5", fontFamily: "'Sora', sans-serif" }}
+              >
+                Admin Access
+              </h1>
+              <p className="text-sm" style={{ color: "#a1a1aa" }}>
+                Enter your admin token to continue
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label
+                  className="block text-xs font-bold uppercase tracking-widest mb-2"
+                  style={{ color: "rgba(255,69,0,0.7)" }}
+                >
+                  Admin Token
+                </label>
+                <div className="relative">
+                  <input
+                    type={show ? "text" : "password"}
+                    value={token}
+                    onChange={(e) => setToken(e.target.value)}
+                    placeholder="Enter admin token..."
+                    autoFocus
+                    className="input-field w-full pr-10"
+                    style={{ paddingRight: "2.5rem" }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShow(!show)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
+                    style={{ color: "#52525b" }}
+                    onMouseEnter={(e) => ((e.target as HTMLElement).style.color = "#ff4500")}
+                    onMouseLeave={(e) => ((e.target as HTMLElement).style.color = "#52525b")}
+                  >
+                    {show ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              {error && (
+                <p className="text-sm flex items-center gap-1.5" style={{ color: "#f87171" }}>
+                  <XCircle size={14} /> {error}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-primary w-full flex items-center justify-center gap-2"
+              >
+                {loading ? <Loader2 size={16} className="animate-spin" /> : null}
+                {loading ? "Verifying..." : "Access Dashboard"}
+              </button>
+            </form>
           </div>
+        </div>
 
-          {error && (
-            <p className="text-red-400 text-sm flex items-center gap-1.5">
-              <XCircle size={14} /> {error}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl transition-all duration-300 active:scale-[0.97]"
-            style={{
-              background: loading ? "rgba(255,60,0,0.4)" : "#ff3c00",
-              color: "#ffffff",
-              fontFamily: "'Sora', sans-serif",
-              fontWeight: 700,
-              fontSize: "0.9rem",
-              letterSpacing: "0.02em",
-              boxShadow: loading ? "none" : "0 4px 16px rgba(255,60,0,0.25)",
-            }}
-          >
-            {loading ? <Loader2 size={16} className="animate-spin" /> : null}
-            {loading ? "Verifying..." : "Access Dashboard"}
-          </button>
-        </form>
-
-        <p className="text-center text-gray-600 text-xs mt-6">
-          BoomTips25 · Admin Portal
+        <p
+          className="text-center text-xs mt-6"
+          style={{ color: "#52525b" }}
+        >
+          Kaana Predictions · Admin Portal
         </p>
       </div>
     </div>
@@ -226,96 +259,165 @@ function OverviewSection({ token }: { token: string }) {
 
   if (loading) return (
     <div className="flex items-center justify-center py-24">
-      <Loader2 size={32} className="animate-spin" style={{ color: "#ff3c00" }} />
+      <Loader2 size={32} className="animate-spin" style={{ color: "#ff4500" }} />
     </div>
   );
-  if (!stats) return <div className="text-gray-500 py-24 text-center">Failed to load stats.</div>;
+  if (!stats) return (
+    <div className="text-center py-24" style={{ color: "#a1a1aa" }}>
+      Failed to load stats.
+    </div>
+  );
 
   const statCards = [
-    { label: "Total Slips", value: stats.totalSlips, icon: FileText, color: "text-orange-600" },
-    { label: "Active Slips", value: stats.activeSlips, icon: Activity, color: "text-emerald-600" },
-    { label: "Total Revenue", value: `GHS ${stats.totalRevenue.toFixed(2)}`, icon: DollarSign, color: "text-emerald-600", wide: true },
-    { label: "Total Sales", value: stats.totalSales, icon: TrendingUp, color: "text-emerald-600" },
+    { label: "Total Predictions", value: stats.totalSlips, icon: FileText, iconColor: "#ff4500", iconBg: "rgba(255,69,0,0.1)", iconBorder: "rgba(255,69,0,0.2)" },
+    { label: "Active Slips", value: stats.activeSlips, icon: Activity, iconColor: "#10b981", iconBg: "rgba(16,185,129,0.1)", iconBorder: "rgba(16,185,129,0.2)" },
+    { label: "Total Revenue", value: `GHS ${stats.totalRevenue.toFixed(2)}`, icon: DollarSign, iconColor: "#10b981", iconBg: "rgba(16,185,129,0.1)", iconBorder: "rgba(16,185,129,0.2)" },
+    { label: "Win Rate", value: `${stats.totalSales > 0 ? Math.round((stats.completedSlips / stats.totalSlips) * 100) : 0}%`, icon: TrendingUp, iconColor: "#10b981", iconBg: "rgba(16,185,129,0.1)", iconBorder: "rgba(16,185,129,0.2)" },
   ];
 
   return (
     <div className="space-y-6">
       {/* Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-        {statCards.map(s => (
-          <div key={s.label} className="admin-card p-5">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-gray-500 text-sm">{s.label}</span>
-              <s.icon size={20} className={s.color} />
+        {statCards.map((s) => (
+          <div key={s.label} className="card-glass p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{ background: s.iconBg, border: `1px solid ${s.iconBorder}` }}
+              >
+                <s.icon size={18} style={{ color: s.iconColor }} />
+              </div>
             </div>
-            <div style={{ color: "#111827" }} className="text-2xl font-bold">{s.value}</div>
+            <div
+              className="text-2xl font-bold mb-1"
+              style={{ color: "#f4f4f5" }}
+            >
+              {s.value}
+            </div>
+            <div className="text-sm" style={{ color: "#a1a1aa" }}>
+              {s.label}
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Revenue breakdown */}
+      {/* Revenue + Slip overview row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="admin-card p-5">
+        {/* Ghana Payments */}
+        <div className="card-glass p-5">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <Globe2 size={18} className="text-green-400" />
-              <h3 style={{ color: "#111827" }} className="font-semibold">Ghana Payments</h3>
+              <Globe2 size={18} style={{ color: "#10b981" }} />
+              <h3 className="font-semibold" style={{ color: "#f4f4f5" }}>
+                Ghana Payments
+              </h3>
             </div>
-            <DollarSign size={18} className="text-green-400" />
+            <DollarSign size={18} style={{ color: "#10b981" }} />
           </div>
-          <div className="flex justify-between text-sm mb-2">
-            <span className="text-gray-500">Revenue:</span>
-            <span className="text-green-400 font-bold">GHS {stats.totalRevenue.toFixed(2)}</span>
+          <div className="flex justify-between text-sm mb-2.5">
+            <span style={{ color: "#a1a1aa" }}>Revenue:</span>
+            <span className="font-bold" style={{ color: "#10b981" }}>
+              GHS {stats.totalRevenue.toFixed(2)}
+            </span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Sales:</span>
-            <span style={{ color: "#111827" }} className="font-semibold">{stats.totalSales}</span>
+            <span style={{ color: "#a1a1aa" }}>Sales:</span>
+            <span className="font-semibold" style={{ color: "#f4f4f5" }}>
+              {stats.totalSales}
+            </span>
           </div>
         </div>
-        <div className="admin-card p-5">
+
+        {/* Slip Overview */}
+        <div className="card-glass p-5">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <BarChart2 size={18} style={{ color: "#ff3c00" }} />
-              <h3 style={{ color: "#111827" }} className="font-semibold">Slip Overview</h3>
+              <BarChart2 size={18} style={{ color: "#ff4500" }} />
+              <h3 className="font-semibold" style={{ color: "#f4f4f5" }}>
+                Slip Overview
+              </h3>
             </div>
-            <FileText size={18} style={{ color: "#ff3c00" }} />
+            <FileText size={18} style={{ color: "#ff4500" }} />
           </div>
-          <div className="flex justify-between text-sm mb-2">
-            <span className="text-gray-500">Active:</span>
-            <span style={{ color: "#ff3c00" }} className="font-bold">{stats.activeSlips}</span>
+          <div className="flex justify-between text-sm mb-2.5">
+            <span style={{ color: "#a1a1aa" }}>Active:</span>
+            <span className="font-bold" style={{ color: "#ff4500" }}>
+              {stats.activeSlips}
+            </span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Completed:</span>
-            <span className="text-gray-600 font-semibold">{stats.completedSlips}</span>
+            <span style={{ color: "#a1a1aa" }}>Completed:</span>
+            <span className="font-semibold" style={{ color: "#a1a1aa" }}>
+              {stats.completedSlips}
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Recent Activity */}
-      <div className="admin-card overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-200">
-          <h3 style={{ color: "#111827" }} className="font-semibold">Recent Activity</h3>
+      {/* Recent Payments */}
+      <div
+        className="rounded-2xl overflow-hidden"
+        style={{
+          background: "#111117",
+          border: "1px solid rgba(255,255,255,0.06)",
+        }}
+      >
+        <div
+          className="px-5 py-4"
+          style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+        >
+          <h3 className="font-semibold" style={{ color: "#f4f4f5" }}>
+            Recent Payments
+          </h3>
         </div>
         {stats.recentActivity.length === 0 ? (
-          <div className="py-12 text-center text-gray-400 text-sm">No payment activity yet.</div>
+          <div
+            className="py-12 text-center text-sm"
+            style={{ color: "#52525b" }}
+          >
+            No payment activity yet.
+          </div>
         ) : (
-          <div className="divide-y divide-gray-100">
-            {stats.recentActivity.map(act => (
-              <div key={act._id} className="flex items-center justify-between px-5 py-3.5 hover:bg-gray-50 transition-colors">
+          <div>
+            {stats.recentActivity.map((act) => (
+              <div
+                key={act._id}
+                className="flex items-center justify-between px-5 py-3.5 transition-colors"
+                style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+                onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.02)")}
+                onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = "transparent")}
+              >
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-xs font-bold text-orange-700">
+                  <div
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                    style={{
+                      background: "rgba(255,69,0,0.15)",
+                      color: "#ff4500",
+                      border: "1px solid rgba(255,69,0,0.25)",
+                    }}
+                  >
                     {act.email[0].toUpperCase()}
                   </div>
                   <div>
-                    <p style={{ color: "#374151" }} className="text-sm font-medium">{act.email}</p>
-                    <p className="text-gray-400 text-xs">{act.predictionTitle}</p>
+                    <p className="text-sm font-medium" style={{ color: "#a1a1aa" }}>
+                      {act.email}
+                    </p>
+                    <p className="text-xs" style={{ color: "#52525b" }}>
+                      {act.predictionTitle}
+                    </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className={`text-sm font-bold ${act.status === "success" ? "text-green-400" : "text-red-400"}`}>
+                  <p
+                    className="text-sm font-bold"
+                    style={{ color: act.status === "success" ? "#10b981" : "#ef4444" }}
+                  >
                     {act.currency} {act.amount}
                   </p>
-                  <p className="text-gray-400 text-xs">{act.status}</p>
+                  <p className="text-xs" style={{ color: "#52525b" }}>
+                    {act.status}
+                  </p>
                 </div>
               </div>
             ))}
@@ -347,7 +449,7 @@ function SlipModal({
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: name === "price" ? Number(value) : value }));
+    setForm((prev) => ({ ...prev, [name]: name === "price" ? Number(value) : value }));
   };
 
   const [imgUploadError, setImgUploadError]     = useState("");
@@ -358,19 +460,18 @@ function SlipModal({
     const file = e.target.files?.[0];
     if (!file) return;
     setImgUploadError("");
-    // Show local preview immediately
     const localUrl = URL.createObjectURL(file);
     setImgPreview(localUrl);
     setUploading(true);
     try {
       const cdnUrl = await adminUploadImage(token, file);
       setImgPreview(cdnUrl);
-      setForm(prev => ({ ...prev, imageUrl: cdnUrl }));
+      setForm((prev) => ({ ...prev, imageUrl: cdnUrl }));
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || (err as Error)?.message || "Upload failed";
       setImgUploadError(msg);
       setImgPreview("");
-      setForm(prev => ({ ...prev, imageUrl: "" }));
+      setForm((prev) => ({ ...prev, imageUrl: "" }));
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
@@ -388,12 +489,12 @@ function SlipModal({
     try {
       const cdnUrl = await adminUploadImage(token, file);
       setProofPreview(cdnUrl);
-      setForm(prev => ({ ...prev, proofImageUrl: cdnUrl }));
+      setForm((prev) => ({ ...prev, proofImageUrl: cdnUrl }));
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || (err as Error)?.message || "Upload failed";
       setProofUploadError(msg);
       setProofPreview("");
-      setForm(prev => ({ ...prev, proofImageUrl: "" }));
+      setForm((prev) => ({ ...prev, proofImageUrl: "" }));
     } finally {
       setUploadingProof(false);
       if (proofFileRef.current) proofFileRef.current.value = "";
@@ -401,145 +502,329 @@ function SlipModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      {/* Backdrop */}
       <div
-        className="relative w-full max-w-xl bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
-        onClick={e => e.stopPropagation()}
+        className="absolute inset-0 backdrop-blur-sm"
+        style={{ background: "rgba(0,0,0,0.75)" }}
+      />
+      {/* Modal card */}
+      <div
+        className="relative w-full max-w-2xl rounded-2xl overflow-y-auto max-h-[90vh]"
+        style={{
+          background: "#111117",
+          border: "1px solid rgba(255,255,255,0.08)",
+        }}
+        onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-          <h2 style={{ color: "#111827" }} className="font-bold text-lg">{editing ? "Edit Slip" : "Add New Slip"}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-700 transition-colors"><X size={20} /></button>
+        {/* Header */}
+        <div
+          className="flex items-center justify-between px-6 py-4 sticky top-0 z-10"
+          style={{
+            background: "#111117",
+            borderBottom: "1px solid rgba(255,255,255,0.07)",
+          }}
+        >
+          <h2
+            className="font-bold text-lg"
+            style={{ color: "#f4f4f5", fontFamily: "'Sora', sans-serif" }}
+          >
+            {editing ? "Edit Slip" : "Create Slip"}
+          </h2>
+          <button
+            onClick={onClose}
+            className="transition-colors p-1.5 rounded-lg"
+            style={{ color: "#52525b" }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "#f4f4f5")}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "#52525b")}
+          >
+            <X size={20} />
+          </button>
         </div>
 
-        <form onSubmit={e => { e.preventDefault(); onSave(form); }} className="p-6 space-y-4">
+        <form
+          onSubmit={(e) => { e.preventDefault(); onSave(form); }}
+          className="p-6 space-y-5"
+        >
           {/* Title */}
           <div>
-            <label className="admin-label">Title *</label>
-            <input name="match" value={form.match} onChange={onChange}
-              placeholder="e.g. Arsenal vs Chelsea" className="admin-input" required />
+            <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "#52525b" }}>
+              Match Details
+            </p>
+            <label className="block text-xs font-medium mb-1.5" style={{ color: "#a1a1aa" }}>
+              Title *
+            </label>
+            <input
+              name="match"
+              value={form.match}
+              onChange={onChange}
+              placeholder="e.g. Arsenal vs Chelsea"
+              className="admin-input w-full"
+              required
+            />
           </div>
 
           {/* Odds Category */}
           <div>
-            <label className="admin-label">Odds Category</label>
-            <select name="oddsCategory" value={
-              ODDS_CATEGORIES.find(c => ODDS_VALUES[c] === form.oddsCategory) || "2+ ODDS"
-            }
-              onChange={e => setForm(prev => ({ ...prev, oddsCategory: ODDS_VALUES[e.target.value] }))}
-              className="admin-select">
-              {ODDS_CATEGORIES.map(c => <option key={c}>{c}</option>)}
+            <label className="block text-xs font-medium mb-1.5" style={{ color: "#a1a1aa" }}>
+              Odds Category
+            </label>
+            <select
+              name="oddsCategory"
+              value={ODDS_CATEGORIES.find((c) => ODDS_VALUES[c] === form.oddsCategory) || "2+ ODDS"}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, oddsCategory: ODDS_VALUES[e.target.value] }))
+              }
+              className="admin-input w-full"
+            >
+              {ODDS_CATEGORIES.map((c) => (
+                <option key={c}>{c}</option>
+              ))}
             </select>
           </div>
 
           {/* Price */}
           <div>
-            <label className="admin-label">Price (GHS)</label>
-            <input name="price" type="number" value={form.price} onChange={onChange}
-              min={1} className="admin-input" required />
+            <label className="block text-xs font-medium mb-1.5" style={{ color: "#a1a1aa" }}>
+              Price (GHS)
+            </label>
+            <input
+              name="price"
+              type="number"
+              value={form.price}
+              onChange={onChange}
+              min={1}
+              className="admin-input w-full"
+              required
+            />
           </div>
 
           {/* League + Odds */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="admin-label">League</label>
-              <input name="league" value={form.league} onChange={onChange}
-                placeholder="Premier League" className="admin-input" />
-            </div>
-            <div>
-              <label className="admin-label">Odds (display)</label>
-              <input name="odds" value={form.odds} onChange={onChange}
-                placeholder="7.50" className="admin-input" />
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "#52525b" }}>
+              League & Odds
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium mb-1.5" style={{ color: "#a1a1aa" }}>
+                  League
+                </label>
+                <input
+                  name="league"
+                  value={form.league}
+                  onChange={onChange}
+                  placeholder="Premier League"
+                  className="admin-input w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1.5" style={{ color: "#a1a1aa" }}>
+                  Odds (display)
+                </label>
+                <input
+                  name="odds"
+                  value={form.odds}
+                  onChange={onChange}
+                  placeholder="7.50"
+                  className="admin-input w-full"
+                />
+              </div>
             </div>
           </div>
 
           {/* Start / End Day */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="admin-label">Start Day</label>
-              <input name="startDay" value={form.startDay} onChange={onChange}
-                placeholder="e.g. Saturday" className="admin-input" />
+              <label className="block text-xs font-medium mb-1.5" style={{ color: "#a1a1aa" }}>
+                Start Day
+              </label>
+              <input
+                name="startDay"
+                value={form.startDay}
+                onChange={onChange}
+                placeholder="e.g. Saturday"
+                className="admin-input w-full"
+              />
             </div>
             <div>
-              <label className="admin-label">End Day</label>
-              <input name="endDay" value={form.endDay} onChange={onChange}
-                placeholder="e.g. Sunday" className="admin-input" />
+              <label className="block text-xs font-medium mb-1.5" style={{ color: "#a1a1aa" }}>
+                End Day
+              </label>
+              <input
+                name="endDay"
+                value={form.endDay}
+                onChange={onChange}
+                placeholder="e.g. Sunday"
+                className="admin-input w-full"
+              />
             </div>
           </div>
 
           {/* Date */}
           <div>
-            <label className="admin-label">Date *</label>
-            <input name="date" type="date" value={form.date} onChange={onChange}
-              className="admin-input" required />
+            <label className="block text-xs font-medium mb-1.5" style={{ color: "#a1a1aa" }}>
+              Date *
+            </label>
+            <input
+              name="date"
+              type="date"
+              value={form.date}
+              onChange={onChange}
+              className="admin-input w-full"
+              required
+            />
           </div>
 
           {/* Status + Result */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="admin-label">Status</label>
-              <select name="status" value={form.status} onChange={onChange} className="admin-select">
-                <option value="active">Active</option>
-                <option value="completed">Completed</option>
-              </select>
-            </div>
-            {form.status === "completed" && (
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "#52525b" }}>
+              Status
+            </p>
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="admin-label">Result</label>
-                <select name="result" value={form.result ?? ""} onChange={e => setForm(prev => ({ ...prev, result: e.target.value as "win" | "loss" | null || null }))} className="admin-select">
-                  <option value="">— Not set —</option>
-                  <option value="win">Win</option>
-                  <option value="loss">Loss</option>
+                <label className="block text-xs font-medium mb-1.5" style={{ color: "#a1a1aa" }}>
+                  Status
+                </label>
+                <select
+                  name="status"
+                  value={form.status}
+                  onChange={onChange}
+                  className="admin-input w-full"
+                >
+                  <option value="active">Active</option>
+                  <option value="completed">Completed</option>
                 </select>
               </div>
-            )}
+              {form.status === "completed" && (
+                <div>
+                  <label className="block text-xs font-medium mb-1.5" style={{ color: "#a1a1aa" }}>
+                    Result
+                  </label>
+                  <select
+                    name="result"
+                    value={form.result ?? ""}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        result: (e.target.value as "win" | "loss" | null) || null,
+                      }))
+                    }
+                    className="admin-input w-full"
+                  >
+                    <option value="">— Not set —</option>
+                    <option value="win">Win</option>
+                    <option value="loss">Loss</option>
+                  </select>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Booking content */}
           <div>
-            <label className="admin-label">Prediction / Booking Code</label>
-            <textarea name="content" value={form.content} onChange={onChange}
-              rows={2} placeholder="Short summary: Arsenal to Win & Over 2.5 Goals"
-              className="admin-input resize-y min-h-[60px]" />
+            <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "#52525b" }}>
+              Prediction Content
+            </p>
+            <label className="block text-xs font-medium mb-1.5" style={{ color: "#a1a1aa" }}>
+              Prediction / Booking Code
+            </label>
+            <textarea
+              name="content"
+              value={form.content}
+              onChange={onChange}
+              rows={2}
+              placeholder="Short summary: Arsenal to Win & Over 2.5 Goals"
+              className="admin-input w-full resize-y min-h-[60px]"
+            />
           </div>
 
           {/* Booking code */}
           <div>
-            <label className="admin-label">Betting Code (shown prominently when unlocked)</label>
-            <input name="bookingCode" value={form.bookingCode} onChange={onChange}
-              placeholder="e.g. ARS-CHE-8821" className="admin-input font-mono" />
+            <label className="block text-xs font-medium mb-1.5" style={{ color: "#a1a1aa" }}>
+              Betting Code{" "}
+              <span style={{ color: "#52525b", fontWeight: 400 }}>(shown prominently when unlocked)</span>
+            </label>
+            <input
+              name="bookingCode"
+              value={form.bookingCode}
+              onChange={onChange}
+              placeholder="e.g. ARS-CHE-8821"
+              className="admin-input w-full font-mono"
+            />
           </div>
 
           {/* Tips list */}
           <div>
-            <label className="admin-label">Tips (one per line)</label>
-            <textarea name="tips" value={form.tips} onChange={onChange}
-              rows={3} placeholder={"Arsenal to win\nBoth teams to score\nOver 2.5 goals total"}
-              className="admin-input resize-y min-h-[80px] text-xs" />
+            <label className="block text-xs font-medium mb-1.5" style={{ color: "#a1a1aa" }}>
+              Tips (one per line)
+            </label>
+            <textarea
+              name="tips"
+              value={form.tips}
+              onChange={onChange}
+              rows={3}
+              placeholder={"Arsenal to win\nBoth teams to score\nOver 2.5 goals total"}
+              className="admin-input w-full resize-y min-h-[80px] text-xs"
+            />
           </div>
 
-          {/* Bet Slip Image (before) */}
+          {/* Bet Slip Image */}
           <div>
-            <label className="admin-label">Bet Slip Image <span className="text-gray-400 font-normal">(shown blurred before payment)</span></label>
-            <div className="flex items-center gap-3">
-              <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
-                className="admin-btn-primary flex items-center gap-2 text-sm disabled:opacity-60">
-                <Upload size={14} /> {uploading ? "Uploading…" : "Choose Image"}
+            <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "#52525b" }}>
+              Images
+            </p>
+            <label className="block text-xs font-medium mb-2" style={{ color: "#a1a1aa" }}>
+              Bet Slip Image{" "}
+              <span style={{ color: "#52525b", fontWeight: 400 }}>(shown blurred before payment)</span>
+            </label>
+            <div>
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={uploading}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-60"
+                style={{
+                  background: "rgba(255,255,255,0.04)",
+                  border: "2px dashed rgba(255,255,255,0.12)",
+                  color: "#a1a1aa",
+                  width: "100%",
+                  justifyContent: "center",
+                }}
+              >
+                <Upload size={15} />
+                {uploading ? "Uploading…" : imgPreview && !imgUploadError ? "Replace Image" : "Choose Image"}
               </button>
-              <span className="text-gray-500 text-sm">
-                {uploading ? "Uploading to storage…" : imgPreview && !imgUploadError ? "✅ Uploaded" : "No image chosen"}
-              </span>
-              <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={onFile} />
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="hidden"
+                onChange={onFile}
+              />
             </div>
             {imgUploadError && (
-              <p className="mt-2 text-red-400 text-xs">❌ Upload failed: {imgUploadError}</p>
+              <p className="mt-2 text-xs" style={{ color: "#ef4444" }}>
+                ❌ Upload failed: {imgUploadError}
+              </p>
             )}
             {imgPreview && !imgUploadError && (
               <div className="mt-3 relative inline-block">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={imgPreview} alt="Slip preview" className="h-28 rounded-xl object-cover border border-gray-200" />
-                <button type="button" onClick={() => { setImgPreview(""); setImgUploadError(""); setForm(p => ({ ...p, imageUrl: "" })); }}
-                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                <img
+                  src={imgPreview}
+                  alt="Slip preview"
+                  className="h-28 rounded-xl object-cover"
+                  style={{ border: "1px solid rgba(255,255,255,0.1)", background: "#0d0d10" }}
+                />
+                <button
+                  type="button"
+                  onClick={() => { setImgPreview(""); setImgUploadError(""); setForm((p) => ({ ...p, imageUrl: "" })); }}
+                  className="absolute -top-2 -right-2 rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                  style={{ background: "#ef4444", color: "#ffffff" }}
+                >
                   <X size={10} />
                 </button>
               </div>
@@ -550,32 +835,72 @@ function SlipModal({
           {form.status === "completed" && (
             <div
               className="rounded-xl p-4 space-y-3"
-              style={{ background: "rgba(16,185,129,0.05)", border: "1px solid rgba(16,185,129,0.2)" }}
+              style={{
+                background: "rgba(16,185,129,0.05)",
+                border: "1px solid rgba(16,185,129,0.18)",
+              }}
             >
-              <label className="admin-label text-emerald-600 flex items-center gap-2">
-                <CheckCircle size={14} className="text-emerald-600" />
-                Proof Image <span className="text-gray-500 font-normal">(result screenshot shown in History)</span>
+              <label
+                className="flex items-center gap-2 text-xs font-semibold"
+                style={{ color: "#10b981" }}
+              >
+                <CheckCircle size={14} style={{ color: "#10b981" }} />
+                Proof Image{" "}
+                <span style={{ color: "#52525b", fontWeight: 400 }}>(result screenshot shown in History)</span>
               </label>
-              <div className="flex items-center gap-3">
-                <button type="button" onClick={() => proofFileRef.current?.click()} disabled={uploadingProof}
-                  className="flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg font-semibold transition-colors disabled:opacity-60"
-                  style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.3)", color: "#34d399" }}>
-                  <Upload size={14} /> {uploadingProof ? "Uploading…" : "Upload Proof Image"}
+              <div>
+                <button
+                  type="button"
+                  onClick={() => proofFileRef.current?.click()}
+                  disabled={uploadingProof}
+                  className="flex items-center gap-2 text-sm px-3 py-2 rounded-lg font-semibold transition-colors disabled:opacity-60 w-full justify-center"
+                  style={{
+                    background: "rgba(16,185,129,0.12)",
+                    border: "1px solid rgba(16,185,129,0.25)",
+                    color: "#34d399",
+                  }}
+                >
+                  <Upload size={14} />
+                  {uploadingProof ? "Uploading…" : "Upload Proof Image"}
                 </button>
-                <span className="text-gray-500 text-sm">
-                  {uploadingProof ? "Uploading…" : proofPreview && !proofUploadError ? "✅ Uploaded" : "No proof yet"}
-                </span>
-                <input ref={proofFileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={onProofFile} />
+                <input
+                  ref={proofFileRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  className="hidden"
+                  onChange={onProofFile}
+                />
               </div>
+              {!proofPreview && !proofUploadError && (
+                <p className="text-xs" style={{ color: "#52525b" }}>
+                  No proof image yet
+                </p>
+              )}
+              {proofPreview && !proofUploadError && (
+                <p className="text-xs" style={{ color: "#10b981" }}>
+                  ✅ Uploaded
+                </p>
+              )}
               {proofUploadError && (
-                <p className="text-red-400 text-xs">❌ Upload failed: {proofUploadError}</p>
+                <p className="text-xs" style={{ color: "#ef4444" }}>
+                  ❌ Upload failed: {proofUploadError}
+                </p>
               )}
               {proofPreview && !proofUploadError && (
                 <div className="relative inline-block">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={proofPreview} alt="Proof preview" className="h-28 rounded-xl object-cover border border-emerald-300" />
-                  <button type="button" onClick={() => { setProofPreview(""); setProofUploadError(""); setForm(p => ({ ...p, proofImageUrl: "" })); }}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                  <img
+                    src={proofPreview}
+                    alt="Proof preview"
+                    className="h-28 rounded-xl object-cover"
+                    style={{ border: "1px solid rgba(16,185,129,0.3)", background: "#0d0d10" }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => { setProofPreview(""); setProofUploadError(""); setForm((p) => ({ ...p, proofImageUrl: "" })); }}
+                    className="absolute -top-2 -right-2 rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                    style={{ background: "#ef4444", color: "#ffffff" }}
+                  >
                     <X size={10} />
                   </button>
                 </div>
@@ -585,11 +910,21 @@ function SlipModal({
 
           {/* Actions */}
           <div className="flex gap-3 pt-2">
-            <button type="submit" disabled={saving} className="admin-btn-primary flex-1 flex items-center justify-center gap-2">
+            <button
+              type="submit"
+              disabled={saving}
+              className="btn-primary flex-1 flex items-center justify-center gap-2"
+            >
               {saving ? <Loader2 size={15} className="animate-spin" /> : null}
               {saving ? "Saving..." : editing ? "Update Slip" : "Create Slip"}
             </button>
-            <button type="button" onClick={onClose} className="admin-btn-ghost flex-none px-6">Cancel</button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="btn-outline flex-none px-6"
+            >
+              Cancel
+            </button>
           </div>
         </form>
       </div>
@@ -604,6 +939,7 @@ function ManageSlipsSection({ token }: { token: string }) {
   const [saving, setSaving] = useState(false);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "completed">("all");
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<Prediction | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -623,10 +959,14 @@ function ManageSlipsSection({ token }: { token: string }) {
 
   useEffect(() => { load(); }, [load]);
 
-  const filtered = slips.filter(s =>
-    s.match.toLowerCase().includes(search.toLowerCase()) ||
-    (s.league || "").toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = slips.filter((s) => {
+    const matchesSearch =
+      s.match.toLowerCase().includes(search.toLowerCase()) ||
+      (s.league || "").toLowerCase().includes(search.toLowerCase());
+    const matchesStatus =
+      statusFilter === "all" ? true : s.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
   const pages = Math.ceil(filtered.length / PAGE_SIZE);
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
@@ -683,8 +1023,14 @@ function ManageSlipsSection({ token }: { token: string }) {
     <>
       {/* Toast */}
       {toast && (
-        <div className={`fixed top-4 right-4 z-[100] flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg text-sm font-medium
-          ${toast.type === "ok" ? "bg-emerald-500/20 border border-emerald-500/40 text-emerald-300" : "bg-red-500/20 border border-red-500/40 text-red-300"}`}>
+        <div
+          className={`fixed top-4 right-4 z-[100] flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg text-sm font-medium`}
+          style={
+            toast.type === "ok"
+              ? { background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.3)", color: "#10b981" }
+              : { background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)", color: "#ef4444" }
+          }
+        >
           {toast.type === "ok" ? <CheckCircle size={16} /> : <XCircle size={16} />}
           {toast.msg}
         </div>
@@ -692,60 +1038,147 @@ function ManageSlipsSection({ token }: { token: string }) {
 
       {/* Header row */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-        <div className="relative flex-1 max-w-xs">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
-            placeholder="Search slips..." className="admin-input pl-9 text-sm" />
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Search */}
+          <div className="relative">
+            <Search
+              size={15}
+              className="absolute left-3 top-1/2 -translate-y-1/2"
+              style={{ color: "#52525b" }}
+            />
+            <input
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              placeholder="Search slips..."
+              className="admin-input pl-9 text-sm"
+              style={{ minWidth: "220px" }}
+            />
+          </div>
+          {/* Filter pills */}
+          <div
+            className="flex items-center gap-1 p-1 rounded-xl"
+            style={{ background: "#1a1a24", border: "1px solid rgba(255,255,255,0.07)" }}
+          >
+            {(["all", "active", "completed"] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => { setStatusFilter(f); setPage(1); }}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors"
+                style={
+                  statusFilter === f
+                    ? { background: "#ff4500", color: "#ffffff" }
+                    : { background: "transparent", color: "#52525b" }
+                }
+              >
+                {f}
+              </button>
+            ))}
+          </div>
         </div>
-        <button onClick={openCreate} className="admin-btn-primary flex items-center gap-2">
+        <button onClick={openCreate} className="btn-primary flex items-center gap-2">
           <Plus size={16} /> Add New Slip
         </button>
       </div>
 
-      {/* Table */}
-      <div className="admin-card overflow-hidden">
+      {/* Table / Cards */}
+      <div
+        className="admin-card overflow-hidden"
+        style={{
+          background: "#111117",
+          border: "1px solid rgba(255,255,255,0.06)",
+          borderRadius: "16px",
+        }}
+      >
         {loading ? (
           <div className="flex items-center justify-center py-24">
-            <Loader2 size={28} className="animate-spin" style={{ color: "#ff3c00" }} />
+            <Loader2 size={28} className="animate-spin" style={{ color: "#ff4500" }} />
           </div>
         ) : paginated.length === 0 ? (
           <div className="py-16 text-center">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(0,0,0,0.06)" }}>
-              <Inbox size={22} className="text-gray-400" />
+            <div
+              className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3"
+              style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}
+            >
+              <Inbox size={22} style={{ color: "#52525b" }} />
             </div>
-            <p className="text-gray-500 text-sm">No slips found.</p>
-            <button onClick={openCreate} className="admin-btn-primary mt-4">Create First Slip</button>
+            <p className="text-sm" style={{ color: "#52525b" }}>
+              No slips found.
+            </p>
+            <button onClick={openCreate} className="btn-primary mt-4">
+              Create First Slip
+            </button>
           </div>
         ) : (
           <>
             {/* Mobile card list */}
-            <div className="md:hidden divide-y divide-slate-700/30">
-              {paginated.map(slip => (
-                <div key={slip._id} className="px-4 py-4 flex items-center gap-3">
+            <div className="md:hidden">
+              {paginated.map((slip, idx) => (
+                <div
+                  key={slip._id}
+                  className="px-4 py-4 flex items-center gap-3"
+                  style={{
+                    background: idx % 2 === 0 ? "#111117" : "#131318",
+                    borderBottom: "1px solid rgba(255,255,255,0.04)",
+                  }}
+                >
                   <div className="flex-1 min-w-0">
-                    <p style={{ color: "#111827" }} className="text-sm font-semibold truncate">{slip.match}</p>
+                    <p
+                      className="text-sm font-semibold truncate"
+                      style={{ color: "#f4f4f5" }}
+                    >
+                      {slip.match}
+                    </p>
                     <div className="flex items-center gap-2 mt-1 flex-wrap">
                       <OddsBadge cat={slip.oddsCategory} />
-                      <span className="text-gray-500 text-xs">GHS {slip.price}</span>
+                      <span className="text-xs" style={{ color: "#52525b" }}>
+                        GHS {slip.price}
+                      </span>
                       <StatusBadge status={slip.status} />
+                      {slip.result && <StatusBadge status={slip.result} />}
                     </div>
                   </div>
                   <div className="flex items-center gap-1 flex-shrink-0">
-                    <button onClick={() => openEdit(slip)} title="Edit"
-                      className="p-2 text-gray-500 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-colors">
+                    <button
+                      onClick={() => openEdit(slip)}
+                      title="Edit"
+                      className="p-2 rounded-lg transition-colors"
+                      style={{ color: "#52525b" }}
+                      onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "#ff4500")}
+                      onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "#52525b")}
+                    >
                       <Pencil size={15} />
                     </button>
                     {deleteId === slip._id ? (
                       <div className="flex items-center gap-1">
-                        <button onClick={() => handleDelete(slip._id)} disabled={saving}
-                          className="text-xs text-red-400 border border-red-500/40 px-2 py-1 rounded-lg">
+                        <button
+                          onClick={() => handleDelete(slip._id)}
+                          disabled={saving}
+                          className="text-xs px-2 py-1 rounded-lg"
+                          style={{
+                            color: "#ef4444",
+                            border: "1px solid rgba(239,68,68,0.3)",
+                            background: "rgba(239,68,68,0.08)",
+                          }}
+                        >
                           {saving ? "..." : "Del"}
                         </button>
-                        <button onClick={() => setDeleteId(null)} className="p-1.5 text-gray-400 rounded-lg"><X size={13} /></button>
+                        <button
+                          onClick={() => setDeleteId(null)}
+                          className="p-1.5 rounded-lg"
+                          style={{ color: "#52525b" }}
+                        >
+                          <X size={13} />
+                        </button>
                       </div>
                     ) : (
-                      <button onClick={() => setDeleteId(slip._id)} title="Delete"
-                        className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                      <button
+                        onClick={() => setDeleteId(slip._id)}
+                        title="Delete"
+                        className="p-2 rounded-lg transition-colors"
+                        style={{ color: "#52525b" }}
+                        onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "#ef4444")}
+                        onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "#52525b")}
+                      >
                         <Trash2 size={15} />
                       </button>
                     )}
@@ -753,41 +1186,95 @@ function ManageSlipsSection({ token }: { token: string }) {
                 </div>
               ))}
             </div>
+
             {/* Desktop table */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-gray-200">
-                    {["Title", "Odds", "Price", "Status", "Purchases", "Actions"].map(h => (
-                      <th key={h} className="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
+                  <tr style={{ background: "#1a1a24", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+                    {["Title", "Odds", "Price", "Status", "Result", "Actions"].map((h) => (
+                      <th
+                        key={h}
+                        className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide"
+                        style={{ color: "#52525b" }}
+                      >
+                        {h}
+                      </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-700/30">
-                  {paginated.map(slip => (
-                    <tr key={slip._id} className="hover:bg-gray-50/30 transition-colors">
-                      <td className="px-5 py-4 text-sm font-medium max-w-[220px] truncate">{slip.match}</td>
-                      <td className="px-5 py-4"><OddsBadge cat={slip.oddsCategory} /></td>
-                      <td className="px-5 py-4 text-gray-600 text-sm">GHS {slip.price}</td>
-                      <td className="px-5 py-4"><StatusBadge status={slip.status} /></td>
-                      <td className="px-5 py-4 text-gray-500 text-sm">0</td>
+                <tbody>
+                  {paginated.map((slip, idx) => (
+                    <tr
+                      key={slip._id}
+                      style={{
+                        background: idx % 2 === 0 ? "#111117" : "#131318",
+                        borderBottom: "1px solid rgba(255,255,255,0.04)",
+                      }}
+                    >
+                      <td
+                        className="px-5 py-4 text-sm font-medium max-w-[220px] truncate"
+                        style={{ color: "#f4f4f5" }}
+                      >
+                        {slip.match}
+                      </td>
+                      <td className="px-5 py-4">
+                        <OddsBadge cat={slip.oddsCategory} />
+                      </td>
+                      <td className="px-5 py-4 text-sm" style={{ color: "#a1a1aa" }}>
+                        GHS {slip.price}
+                      </td>
+                      <td className="px-5 py-4">
+                        <StatusBadge status={slip.status} />
+                      </td>
+                      <td className="px-5 py-4">
+                        {slip.result ? <StatusBadge status={slip.result} /> : (
+                          <span style={{ color: "#52525b", fontSize: "12px" }}>—</span>
+                        )}
+                      </td>
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-1">
-                          <button onClick={() => openEdit(slip)} title="Edit"
-                            className="p-1.5 text-gray-500 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-colors">
+                          <button
+                            onClick={() => openEdit(slip)}
+                            title="Edit"
+                            className="p-1.5 rounded-lg transition-colors"
+                            style={{ color: "#52525b" }}
+                            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "#ff4500")}
+                            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "#52525b")}
+                          >
                             <Pencil size={15} />
                           </button>
                           {deleteId === slip._id ? (
                             <div className="flex items-center gap-1">
-                              <button onClick={() => handleDelete(slip._id)} disabled={saving}
-                                className="text-xs text-red-400 border border-red-500/40 px-2 py-1 rounded-lg hover:bg-red-500/10">
+                              <button
+                                onClick={() => handleDelete(slip._id)}
+                                disabled={saving}
+                                className="text-xs px-2 py-1 rounded-lg transition-colors"
+                                style={{
+                                  color: "#ef4444",
+                                  border: "1px solid rgba(239,68,68,0.3)",
+                                  background: "rgba(239,68,68,0.08)",
+                                }}
+                              >
                                 {saving ? "..." : "Confirm"}
                               </button>
-                              <button onClick={() => setDeleteId(null)} className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg"><X size={13} /></button>
+                              <button
+                                onClick={() => setDeleteId(null)}
+                                className="p-1.5 rounded-lg"
+                                style={{ color: "#52525b" }}
+                              >
+                                <X size={13} />
+                              </button>
                             </div>
                           ) : (
-                            <button onClick={() => setDeleteId(slip._id)} title="Delete"
-                              className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                            <button
+                              onClick={() => setDeleteId(slip._id)}
+                              title="Delete"
+                              className="p-1.5 rounded-lg transition-colors"
+                              style={{ color: "#52525b" }}
+                              onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "#ef4444")}
+                              onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "#52525b")}
+                            >
                               <Trash2 size={15} />
                             </button>
                           )}
@@ -798,7 +1285,15 @@ function ManageSlipsSection({ token }: { token: string }) {
                 </tbody>
               </table>
             </div>
-            <div className="px-4 md:px-5 py-3 border-t border-gray-200 text-xs text-gray-400">
+
+            {/* Footer count */}
+            <div
+              className="px-5 py-3 text-xs"
+              style={{
+                borderTop: "1px solid rgba(255,255,255,0.06)",
+                color: "#52525b",
+              }}
+            >
               Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length} slips
             </div>
           </>
@@ -811,17 +1306,22 @@ function ManageSlipsSection({ token }: { token: string }) {
       {showModal && (
         <SlipModal
           editing={editing}
-          initial={editing ? {
-            match: editing.match, league: editing.league || "", odds: editing.odds,
-            oddsCategory: editing.oddsCategory, price: editing.price,
-            content: editing.content || "", bookingCode: (editing as {bookingCode?: string}).bookingCode || "",
-            tips: ((editing as {tips?: string[]}).tips || []).join("\n"),
-            imageUrl: editing.imageUrl || "",
-            proofImageUrl: editing.proofImageUrl || "",
-            date: new Date(editing.date).toISOString().split("T")[0],
-            status: editing.status, result: editing.result,
-            startDay: "", endDay: "",
-          } : EMPTY_FORM}
+          initial={
+            editing
+              ? {
+                  match: editing.match, league: editing.league || "", odds: editing.odds,
+                  oddsCategory: editing.oddsCategory, price: editing.price,
+                  content: editing.content || "",
+                  bookingCode: (editing as { bookingCode?: string }).bookingCode || "",
+                  tips: ((editing as { tips?: string[] }).tips || []).join("\n"),
+                  imageUrl: editing.imageUrl || "",
+                  proofImageUrl: editing.proofImageUrl || "",
+                  date: new Date(editing.date).toISOString().split("T")[0],
+                  status: editing.status, result: editing.result,
+                  startDay: "", endDay: "",
+                }
+              : EMPTY_FORM
+          }
           onSave={handleSave}
           onClose={() => { setShowModal(false); setEditing(null); }}
           saving={saving}
@@ -852,7 +1352,7 @@ function PaymentsSection({ token }: { token: string }) {
 
   useEffect(() => { load(page); }, [load, page]);
 
-  const filtered = payments.filter(p =>
+  const filtered = payments.filter((p) =>
     p.email.toLowerCase().includes(search.toLowerCase()) ||
     p.reference.toLowerCase().includes(search.toLowerCase()) ||
     p.predictionTitle.toLowerCase().includes(search.toLowerCase())
@@ -862,90 +1362,191 @@ function PaymentsSection({ token }: { token: string }) {
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-5">
         <div className="relative flex-1 max-w-xs">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Search payments..." className="admin-input pl-9 text-sm" />
+          <Search
+            size={15}
+            className="absolute left-3 top-1/2 -translate-y-1/2"
+            style={{ color: "#52525b" }}
+          />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search payments..."
+            className="admin-input pl-9 text-sm w-full"
+          />
         </div>
-        <div className="text-gray-500 text-sm">{total} total transactions</div>
+        <div className="text-sm" style={{ color: "#52525b" }}>
+          {total} total transactions
+        </div>
       </div>
 
-      <div className="admin-card overflow-hidden">
+      <div
+        className="admin-card overflow-hidden"
+        style={{
+          background: "#111117",
+          border: "1px solid rgba(255,255,255,0.06)",
+          borderRadius: "16px",
+        }}
+      >
         {loading ? (
           <div className="flex items-center justify-center py-24">
-            <Loader2 size={28} className="animate-spin" style={{ color: "#ff3c00" }} />
+            <Loader2 size={28} className="animate-spin" style={{ color: "#ff4500" }} />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="py-16 text-center text-gray-400 text-sm">No payments found.</div>
+          <div className="py-16 text-center text-sm" style={{ color: "#52525b" }}>
+            No payments found.
+          </div>
         ) : (
           <>
             {/* Mobile card list */}
-            <div className="md:hidden divide-y divide-slate-700/30">
-              {filtered.map(pmt => (
-                <div key={pmt._id} className="px-4 py-4">
-                  <div className="flex items-center justify-between mb-1">
+            <div className="md:hidden">
+              {filtered.map((pmt, idx) => (
+                <div
+                  key={pmt._id}
+                  className="px-4 py-4"
+                  style={{
+                    background: idx % 2 === 0 ? "#111117" : "#131318",
+                    borderBottom: "1px solid rgba(255,255,255,0.04)",
+                  }}
+                >
+                  <div className="flex items-center justify-between mb-1.5">
                     <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-orange-100 flex items-center justify-center text-xs font-bold text-orange-700 flex-shrink-0">
+                      <div
+                        className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                        style={{
+                          background: "rgba(255,69,0,0.15)",
+                          color: "#ff4500",
+                          border: "1px solid rgba(255,69,0,0.25)",
+                        }}
+                      >
                         {pmt.email[0].toUpperCase()}
                       </div>
-                      <span className="text-gray-700 text-sm truncate max-w-[160px]">{pmt.email}</span>
+                      <span
+                        className="text-sm truncate max-w-[160px]"
+                        style={{ color: "#a1a1aa" }}
+                      >
+                        {pmt.email}
+                      </span>
                     </div>
-                    <span className={`font-bold text-sm ${pmt.status === "success" ? "text-green-400" : "text-red-400"}`}>
+                    <span
+                      className="font-bold text-sm"
+                      style={{ color: pmt.status === "success" ? "#10b981" : "#ef4444" }}
+                    >
                       {pmt.currency} {pmt.amount}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 mt-1.5 ml-9">
+                  <div className="flex items-center gap-2 mt-1.5 ml-9 flex-wrap">
                     <StatusBadge status={pmt.status} />
-                    <span className="text-gray-400 text-xs truncate">{pmt.predictionTitle}</span>
-                    <span className="text-gray-400 text-xs ml-auto">{new Date(pmt.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span>
+                    <span className="text-xs truncate" style={{ color: "#52525b" }}>
+                      {pmt.predictionTitle}
+                    </span>
+                    <span className="text-xs ml-auto" style={{ color: "#52525b" }}>
+                      {new Date(pmt.createdAt).toLocaleDateString("en-GB", {
+                        day: "numeric",
+                        month: "short",
+                      })}
+                    </span>
                   </div>
                 </div>
               ))}
             </div>
+
             {/* Desktop table */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-gray-200">
-                    {["Customer", "Slip", "Reference", "Amount", "Status", "Date"].map(h => (
-                      <th key={h} className="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
+                  <tr style={{ background: "#1a1a24", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+                    {["Customer", "Slip", "Reference", "Amount", "Status", "Date"].map((h) => (
+                      <th
+                        key={h}
+                        className="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide"
+                        style={{ color: "#52525b" }}
+                      >
+                        {h}
+                      </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-700/30">
-                  {filtered.map(pmt => (
-                    <tr key={pmt._id} className="hover:bg-gray-50/30 transition-colors">
+                <tbody>
+                  {filtered.map((pmt, idx) => (
+                    <tr
+                      key={pmt._id}
+                      style={{
+                        background: idx % 2 === 0 ? "#111117" : "#131318",
+                        borderBottom: "1px solid rgba(255,255,255,0.04)",
+                      }}
+                    >
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-7 h-7 rounded-full bg-orange-100 flex items-center justify-center text-xs font-bold text-orange-700">
+                          <div
+                            className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                            style={{
+                              background: "rgba(255,69,0,0.15)",
+                              color: "#ff4500",
+                              border: "1px solid rgba(255,69,0,0.25)",
+                            }}
+                          >
                             {pmt.email[0].toUpperCase()}
                           </div>
-                          <span className="text-gray-700 text-sm">{pmt.email}</span>
+                          <span className="text-sm" style={{ color: "#a1a1aa" }}>
+                            {pmt.email}
+                          </span>
                         </div>
                       </td>
-                      <td className="px-5 py-4 text-gray-600 text-sm max-w-[160px] truncate">{pmt.predictionTitle}</td>
-                      <td className="px-5 py-4 text-gray-400 text-xs font-mono">{pmt.reference}</td>
+                      <td
+                        className="px-5 py-4 text-sm max-w-[160px] truncate"
+                        style={{ color: "#52525b" }}
+                      >
+                        {pmt.predictionTitle}
+                      </td>
+                      <td
+                        className="px-5 py-4 text-xs font-mono"
+                        style={{ color: "#52525b" }}
+                      >
+                        {pmt.reference}
+                      </td>
                       <td className="px-5 py-4">
-                        <span className={`font-bold text-sm ${pmt.status === "success" ? "text-green-400" : "text-red-400"}`}>
+                        <span
+                          className="font-bold text-sm"
+                          style={{ color: pmt.status === "success" ? "#10b981" : "#ef4444" }}
+                        >
                           {pmt.currency} {pmt.amount}
                         </span>
                       </td>
-                      <td className="px-5 py-4"><StatusBadge status={pmt.status} /></td>
-                      <td className="px-5 py-4 text-gray-400 text-xs">
-                        {new Date(pmt.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                      <td className="px-5 py-4">
+                        <StatusBadge status={pmt.status} />
+                      </td>
+                      <td className="px-5 py-4 text-xs" style={{ color: "#52525b" }}>
+                        {new Date(pmt.createdAt).toLocaleDateString("en-GB", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <div className="px-4 md:px-5 py-3 border-t border-gray-200 text-xs text-gray-400">
+
+            {/* Footer count */}
+            <div
+              className="px-5 py-3 text-xs"
+              style={{
+                borderTop: "1px solid rgba(255,255,255,0.06)",
+                color: "#52525b",
+              }}
+            >
               {total} total payments
             </div>
           </>
         )}
       </div>
 
-      <Pagination page={page} pages={pages} onPage={p => { setPage(p); load(p); }} />
+      <Pagination
+        page={page}
+        pages={pages}
+        onPage={(p) => { setPage(p); load(p); }}
+      />
     </div>
   );
 }
@@ -973,16 +1574,48 @@ function Dashboard({ token, onLogout }: { token: string; onLogout: () => void })
   const SidebarContent = () => (
     <>
       {/* Brand */}
-      <div className="px-5 py-5 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
-        <div>
-          <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: "1.1rem", letterSpacing: "-0.02em", color: "#111827" }}>
-            Boom<span style={{ color: "#ff3c00" }}>Tips25</span>
+      <div
+        className="px-5 py-5 flex items-center justify-between"
+        style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+      >
+        <div className="flex items-center gap-2.5">
+          <div
+            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ background: "rgba(255,69,0,0.12)", border: "1px solid rgba(255,69,0,0.2)" }}
+          >
+            <Zap size={16} style={{ color: "#ff4500" }} strokeWidth={2.5} />
           </div>
-          <div className="text-xs mt-0.5" style={{ color: "#9ca3af", fontFamily: "'Sora', sans-serif", fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase" }}>Admin Panel</div>
+          <div>
+            <div
+              style={{
+                fontFamily: "'Sora', sans-serif",
+                fontWeight: 700,
+                fontSize: "0.95rem",
+                letterSpacing: "-0.02em",
+                color: "#f4f4f5",
+              }}
+            >
+              Kaana{" "}
+              <span style={{ color: "#ff4500" }}>Predictions</span>
+            </div>
+            <div
+              className="text-[10px] mt-0.5"
+              style={{
+                color: "#52525b",
+                fontFamily: "'Sora', sans-serif",
+                fontWeight: 500,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+              }}
+            >
+              Admin Panel
+            </div>
+          </div>
         </div>
         {/* Close button — only visible in drawer */}
         <button
-          className="md:hidden p-1.5 text-gray-400 hover:text-gray-700 transition-colors"
+          className="md:hidden p-1.5 transition-colors rounded-lg"
+          style={{ color: "#52525b" }}
           onClick={() => setDrawerOpen(false)}
         >
           <X size={20} />
@@ -991,25 +1624,29 @@ function Dashboard({ token, onLogout }: { token: string; onLogout: () => void })
 
       {/* Nav */}
       <nav className="flex-1 py-4 space-y-0.5 px-2">
-        {navItems.map(item => (
+        {navItems.map((item) => (
           <button
             key={item.id}
             onClick={() => goTo(item.id)}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150"
-            style={section === item.id ? {
-              background: "rgba(255,60,0,0.06)",
-              color: "#ff3c00",
-              border: "1px solid rgba(255,60,0,0.12)",
-              fontFamily: "'Sora', sans-serif",
-              fontWeight: 600,
-              letterSpacing: "0.02em",
-            } : {
-              color: "#9ca3af",
-              border: "1px solid transparent",
-              fontFamily: "'Sora', sans-serif",
-              fontWeight: 600,
-              letterSpacing: "0.02em",
-            }}
+            style={
+              section === item.id
+                ? {
+                    background: "rgba(255,69,0,0.1)",
+                    color: "#ff4500",
+                    border: "1px solid rgba(255,69,0,0.2)",
+                    fontFamily: "'Sora', sans-serif",
+                    fontWeight: 600,
+                    letterSpacing: "0.02em",
+                  }
+                : {
+                    color: "#52525b",
+                    border: "1px solid transparent",
+                    fontFamily: "'Sora', sans-serif",
+                    fontWeight: 600,
+                    letterSpacing: "0.02em",
+                  }
+            }
           >
             <item.icon size={17} />
             {item.label}
@@ -1018,13 +1655,25 @@ function Dashboard({ token, onLogout }: { token: string; onLogout: () => void })
       </nav>
 
       {/* Logout */}
-      <div className="px-2 py-4" style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}>
+      <div className="px-2 py-4" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
         <button
           onClick={onLogout}
           className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all"
-          style={{ color: "#9ca3af", fontFamily: "'Sora', sans-serif", fontWeight: 600, letterSpacing: "0.02em", border: "1px solid transparent" }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#f87171"; (e.currentTarget as HTMLElement).style.background = "rgba(239,68,68,0.05)"; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#9ca3af"; (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+          style={{
+            color: "#52525b",
+            fontFamily: "'Sora', sans-serif",
+            fontWeight: 600,
+            letterSpacing: "0.02em",
+            border: "1px solid transparent",
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLElement).style.color = "#f87171";
+            (e.currentTarget as HTMLElement).style.background = "rgba(239,68,68,0.08)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLElement).style.color = "#52525b";
+            (e.currentTarget as HTMLElement).style.background = "transparent";
+          }}
         >
           <LogOut size={17} />
           Logout
@@ -1034,12 +1683,15 @@ function Dashboard({ token, onLogout }: { token: string; onLogout: () => void })
   );
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row" style={{ background: "#f7f7f8" }}>
-
+    <div
+      className="min-h-screen flex flex-col md:flex-row"
+      style={{ background: "#09090b" }}
+    >
       {/* ── Mobile drawer overlay ── */}
       {drawerOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-40 backdrop-blur-sm md:hidden"
+          style={{ background: "rgba(0,0,0,0.7)" }}
           onClick={() => setDrawerOpen(false)}
         />
       )}
@@ -1047,15 +1699,22 @@ function Dashboard({ token, onLogout }: { token: string; onLogout: () => void })
       {/* ── Mobile drawer ── */}
       <div
         className={`fixed top-0 left-0 h-full z-50 flex flex-col w-72 transition-transform duration-300 md:hidden ${drawerOpen ? "translate-x-0" : "-translate-x-full"}`}
-        style={{ background: "#ffffff", borderRight: "1px solid rgba(0,0,0,0.06)" }}
+        style={{
+          background: "#111117",
+          borderRight: "1px solid rgba(255,255,255,0.06)",
+        }}
       >
         <SidebarContent />
       </div>
 
       {/* ── Desktop sidebar ── */}
       <aside
-        className="hidden md:flex w-56 flex-shrink-0 flex-col"
-        style={{ background: "#ffffff", borderRight: "1px solid rgba(0,0,0,0.06)" }}
+        className="hidden md:flex flex-shrink-0 flex-col"
+        style={{
+          background: "#111117",
+          borderRight: "1px solid rgba(255,255,255,0.06)",
+          width: "224px",
+        }}
       >
         <SidebarContent />
       </aside>
@@ -1066,22 +1725,44 @@ function Dashboard({ token, onLogout }: { token: string; onLogout: () => void })
         {/* Mobile top header */}
         <header
           className="md:hidden flex items-center justify-between px-4 py-3 sticky top-0 z-30"
-          style={{ background: "rgba(255,255,255,0.95)", borderBottom: "1px solid rgba(0,0,0,0.06)", backdropFilter: "saturate(180%) blur(20px)" }}
+          style={{
+            background: "rgba(9,9,11,0.9)",
+            borderBottom: "1px solid rgba(255,255,255,0.06)",
+            backdropFilter: "saturate(180%) blur(20px)",
+          }}
         >
           <button
             onClick={() => setDrawerOpen(true)}
-            className="p-2 rounded-xl text-gray-400 hover:text-gray-700 transition-colors"
-            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
+            className="p-2 rounded-xl transition-colors"
+            style={{
+              color: "#52525b",
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.07)",
+            }}
           >
             <Menu size={20} />
           </button>
-          <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: "1rem", letterSpacing: "-0.02em", color: "#111827" }}>
-            Boom<span style={{ color: "#ff3c00" }}>Tips25</span>
+          <div
+            style={{
+              fontFamily: "'Sora', sans-serif",
+              fontWeight: 700,
+              fontSize: "1rem",
+              letterSpacing: "-0.02em",
+              color: "#f4f4f5",
+            }}
+          >
+            Kaana <span style={{ color: "#ff4500" }}>Predictions</span>
           </div>
           <button
             onClick={onLogout}
-            className="p-2 rounded-xl text-gray-500 hover:text-red-400 transition-colors"
-            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
+            className="p-2 rounded-xl transition-colors"
+            style={{
+              color: "#52525b",
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.07)",
+            }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "#f87171")}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "#52525b")}
             title="Logout"
           >
             <LogOut size={18} />
@@ -1093,7 +1774,13 @@ function Dashboard({ token, onLogout }: { token: string; onLogout: () => void })
           <div className="px-4 md:px-8 py-5 md:py-7 max-w-6xl">
             <h1
               className="mb-5 md:mb-6"
-              style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: "clamp(1.3rem,4vw,1.8rem)", letterSpacing: "-0.03em", color: "#111827" }}
+              style={{
+                fontFamily: "'Sora', sans-serif",
+                fontWeight: 700,
+                fontSize: "clamp(1.3rem,4vw,1.8rem)",
+                letterSpacing: "-0.03em",
+                color: "#f4f4f5",
+              }}
             >
               {sectionTitle[section]}
             </h1>
@@ -1106,21 +1793,36 @@ function Dashboard({ token, onLogout }: { token: string; onLogout: () => void })
         {/* ── Mobile bottom tab bar ── */}
         <nav
           className="md:hidden fixed bottom-0 left-0 right-0 z-30 flex"
-          style={{ background: "rgba(255,255,255,0.97)", borderTop: "1px solid rgba(0,0,0,0.06)", backdropFilter: "saturate(180%) blur(20px)" }}
+          style={{
+            background: "#111117",
+            borderTop: "1px solid rgba(255,255,255,0.07)",
+            backdropFilter: "saturate(180%) blur(20px)",
+          }}
         >
-          {navItems.map(item => (
+          {navItems.map((item) => (
             <button
               key={item.id}
               onClick={() => goTo(item.id)}
-              className="flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-colors"
-              style={{ color: section === item.id ? "#ff3c00" : "#9ca3af" }}
+              className="flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-colors relative"
+              style={{ color: section === item.id ? "#ff4500" : "#52525b" }}
             >
               <item.icon size={20} />
-              <span style={{ fontSize: "10px", fontFamily: "'Sora', sans-serif", fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
+              <span
+                style={{
+                  fontSize: "10px",
+                  fontFamily: "'Sora', sans-serif",
+                  fontWeight: 600,
+                  letterSpacing: "0.04em",
+                  textTransform: "uppercase",
+                }}
+              >
                 {item.label === "Manage Slips" ? "Slips" : item.label}
               </span>
               {section === item.id && (
-                <div className="absolute bottom-0 h-0.5 w-10 rounded-full" style={{ background: "#ff3c00" }} />
+                <div
+                  className="absolute top-0 h-0.5 w-10 rounded-full"
+                  style={{ background: "#ff4500" }}
+                />
               )}
             </button>
           ))}
@@ -1142,7 +1844,12 @@ export default function AdminPage() {
     setReady(true);
   }, []);
 
-  if (!ready) return <div className="min-h-screen bg-admin-bg" />;
+  if (!ready) return (
+    <div
+      className="min-h-screen"
+      style={{ background: "#09090b" }}
+    />
+  );
 
   const handleLogin = (t: string) => setToken(t);
   const handleLogout = () => {

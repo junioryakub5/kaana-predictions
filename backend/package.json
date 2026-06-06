@@ -1,7 +1,7 @@
 {
-  "name": "boomtips25-backend",
+  "name": "kaana-predictions-backend",
   "version": "1.0.0",
-  "description": "BoomTips25 prediction platform backend",
+  "description": "Kaana Predictions platform backend",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

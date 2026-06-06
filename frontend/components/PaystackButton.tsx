@@ -5,9 +5,8 @@ import { Loader2 } from "lucide-react";
 import { Prediction } from "@/lib/types";
 import { verifyPayment } from "@/lib/api";
 
-const PAYSTACK_KEY =
-  process.env.NEXT_PUBLIC_PAYSTACK_KEY ||
-  "pk_live_cea98412532c144d295ac5f848ab73509bd20330";
+// Paystack public key — must be set via NEXT_PUBLIC_PAYSTACK_KEY env var
+const PAYSTACK_KEY = process.env.NEXT_PUBLIC_PAYSTACK_KEY;
 
 function loadPaystack(): Promise<void> {
   return new Promise((resolve, reject) => {

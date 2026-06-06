@@ -1,58 +1,39 @@
 #!/usr/bin/expect -f
+# ─── Kaana Predictions — VPS Deployment Script ──────────────────────────────────
+# Usage: ./deploy.exp
+# Prerequisites:
+#   1. SSH key auth configured: ssh-copy-id root@72.60.23.133
+#   2. After deploy, copy .env to /var/www/kaana-predictions/backend/.env on VPS
 
 set timeout 300
-set password "Gbangbin@2001"
-set host "187.124.35.84"
-
-spawn ssh -o StrictHostKeyChecking=no root@$host
-
-expect {
-    "password:" { send "$password\r" }
-    "Password:" { send "$password\r" }
-}
+spawn ssh -o StrictHostKeyChecking=no root@72.60.23.133
 
 expect "# " {
     send "set -e\r"
 }
 
 expect "# " {
-    send "echo '📦 Installing PM2...'\r"
+    send "apt-get update -qq && apt-get install -y -qq git curl nginx\r"
 }
 
 expect "# " {
-    send "npm install -g pm2 2>&1 | tail -2\r"
+    send "curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && apt-get install -y nodejs\r"
 }
 
 expect "# " {
-    send "echo '📁 Setting up BoomTips25...'\r"
+    send "npm install -g pm2\r"
 }
 
 expect "# " {
-    send "rm -rf /var/www/boomtips25 && git clone https://github.com/junioryakub5/boomtips25.git /var/www/boomtips25\r"
+    send "mkdir -p /var/www && rm -rf /var/www/kaana-predictions && git clone https://github.com/junioryakub5/kaana-predictions.git /var/www/kaana-predictions\r"
 }
 
 expect "# " {
-    send "cd /var/www/boomtips25/backend && npm install 2>&1 | tail -3\r"
+    send "cd /var/www/kaana-predictions/backend && npm install --production\r"
 }
 
 expect "# " {
-    send {cat > /var/www/boomtips25/backend/.env << 'ENV'
-PORT=5002
-PAYSTACK_SECRET_KEY=REPLACE_WITH_LIVE_SECRET_KEY
-ADMIN_TOKEN=boomtips25-admin-2024
-CLIENT_URL=*
-SUPABASE_URL=
-SUPABASE_SERVICE_KEY=
-ENV
-}
-}
-
-expect "# " {
-    send "pm2 delete boomtips25-api 2>/dev/null; pm2 start /var/www/boomtips25/backend/server.js --name boomtips25-api && pm2 save\r"
-}
-
-expect "# " {
-    send "pm2 status\r"
+    send "pm2 delete kaana-api 2>/dev/null; pm2 start /var/www/kaana-predictions/backend/ecosystem.config.js && pm2 save && pm2 startup\r"
 }
 
 expect "# " {

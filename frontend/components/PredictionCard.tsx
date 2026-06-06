@@ -5,6 +5,7 @@ import React from "react";
 import {
   Calendar, Lock, X, Loader2, Shield, Zap,
   CheckCircle, Copy, Check, Trophy, RefreshCcw, Mail, ExternalLink,
+  CheckCircle2,
 } from "lucide-react";
 import { Prediction } from "@/lib/types";
 import { initiatePayment, verifyPayment, getUnlockedPrediction, restoreAccess } from "@/lib/api";
@@ -19,37 +20,37 @@ function BetSlipImage({ src, alt }: { src: string; alt: string }) {
           type="button"
           onClick={() => setOpen(true)}
           className="relative w-full rounded-xl overflow-hidden group cursor-zoom-in"
-          style={{ height: "120px", background: "#f7f7f8", border: "1px solid rgba(0,0,0,0.06)" }}
+          style={{ height: "120px", background: "#111117", border: "1px solid rgba(255,255,255,0.06)" }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={src} alt={alt} className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-110" />
           <div
             className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-            style={{ background: "rgba(0,0,0,0.5)" }}
+            style={{ background: "rgba(0,0,0,0.7)" }}
           >
             <span
               className="text-xs font-semibold px-4 py-2 rounded-xl flex items-center gap-1.5"
-              style={{ background: "#ff3c00", color: "#ffffff" }}
+              style={{ background: "#ff4500", color: "#ffffff" }}
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
               View Full Slip
             </span>
           </div>
         </button>
-        <p className="text-center text-[10px] mt-1.5" style={{ color: "#9ca3af" }}>Tap to view full bet slip</p>
+        <p className="text-center text-[10px] mt-1.5" style={{ color: "#52525b" }}>Tap to view full bet slip</p>
       </div>
 
       {/* Lightbox */}
       {open && (
         <div
           className="fixed inset-0 z-[9999] overflow-y-auto"
-          style={{ background: "rgba(0,0,0,0.85)" }}
+          style={{ background: "rgba(0,0,0,0.92)" }}
           onClick={() => setOpen(false)}
         >
           <button
             onClick={() => setOpen(false)}
             className="fixed top-4 right-4 text-white rounded-full w-10 h-10 flex items-center justify-center z-[10000]"
-            style={{ background: "rgba(255,60,0,0.9)" }}
+            style={{ background: "rgba(255,69,0,0.9)" }}
           >
             <X size={18} />
           </button>
@@ -63,10 +64,11 @@ function BetSlipImage({ src, alt }: { src: string; alt: string }) {
   );
 }
 
-// Paystack public key
-const PAYSTACK_KEY =
-  process.env.NEXT_PUBLIC_PAYSTACK_KEY ||
-  "pk_live_cea98412532c144d295ac5f848ab73509bd20330";
+// Paystack public key — must be set via NEXT_PUBLIC_PAYSTACK_KEY env var
+const PAYSTACK_KEY = process.env.NEXT_PUBLIC_PAYSTACK_KEY;
+if (!PAYSTACK_KEY) {
+  console.error('[Kaana] NEXT_PUBLIC_PAYSTACK_KEY is not set. Payment will not work.');
+}
 
 // Load Paystack v2 inline.js dynamically
 function loadPaystack(): Promise<void> {
@@ -116,10 +118,10 @@ interface Props {
 
 // ── Accent colours per odds category ─────────────────────────────────────────
 const ACCENT: Record<string, { bg: string; text: string; glow: string; border: string }> = {
-  "2+":  { bg: "rgba(255,60,0,0.06)",   text: "#ff3c00", glow: "rgba(255,60,0,0.15)",  border: "rgba(255,60,0,0.15)" },
-  "5+":  { bg: "rgba(245,158,11,0.06)",  text: "#f59e0b", glow: "rgba(245,158,11,0.15)", border: "rgba(245,158,11,0.15)" },
-  "10+": { bg: "rgba(124,58,237,0.06)",  text: "#7c3aed", glow: "rgba(124,58,237,0.15)", border: "rgba(124,58,237,0.15)" },
-  "20+": { bg: "rgba(239,68,68,0.06)",   text: "#ef4444", glow: "rgba(239,68,68,0.15)",  border: "rgba(239,68,68,0.15)" },
+  "2+":  { bg: "rgba(255,69,0,0.08)",    text: "#ff4500", glow: "rgba(255,69,0,0.2)",    border: "rgba(255,69,0,0.25)" },
+  "5+":  { bg: "rgba(245,158,11,0.08)",  text: "#f59e0b", glow: "rgba(245,158,11,0.2)",  border: "rgba(245,158,11,0.25)" },
+  "10+": { bg: "rgba(168,85,247,0.08)",  text: "#a855f7", glow: "rgba(168,85,247,0.2)",  border: "rgba(168,85,247,0.25)" },
+  "20+": { bg: "rgba(239,68,68,0.08)",   text: "#ef4444", glow: "rgba(239,68,68,0.2)",   border: "rgba(239,68,68,0.25)" },
 };
 
 // ── Exchange rate: 1 GHS → NGN (update as needed) ────────────────────────────
@@ -188,23 +190,40 @@ function CountrySelectModal({
       onClick={onClose}
       style={{ overscrollBehavior: "contain" }}
     >
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      {/* Backdrop */}
+      <div className="absolute inset-0 backdrop-blur-md" style={{ background: "rgba(0,0,0,0.7)" }} />
+
+      {/* Modal card */}
       <div
-        className="relative w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl"
-        style={{ background: "#ffffff", border: "1px solid rgba(0,0,0,0.08)" }}
+        className="relative w-full max-w-sm overflow-hidden"
+        style={{
+          background: "#111117",
+          border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: "20px",
+          boxShadow: "0 24px 80px rgba(0,0,0,0.6)",
+        }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Accent strip */}
-        <div className="h-1 w-full" style={{ background: acc.text }} />
+        {/* Top accent line */}
+        <div style={{ height: "3px", background: acc.text, width: "100%" }} />
 
         {/* Header */}
-        <div className="px-6 pt-5 pb-4" style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
+        <div
+          className="px-6 pt-5 pb-4"
+          style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", background: "#111117" }}
+        >
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="font-semibold text-base" style={{ color: "#111827" }}>Choose your country</h2>
-              <p className="text-xs mt-0.5" style={{ color: "#9ca3af" }}>Select to continue with payment</p>
+              <h2 className="font-semibold text-base" style={{ color: "#f4f4f5" }}>Choose your country</h2>
+              <p className="text-xs mt-0.5" style={{ color: "#a1a1aa" }}>Select to continue with payment</p>
             </div>
-            <button onClick={onClose} style={{ color: "#9ca3af" }}><X size={18} /></button>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
+              style={{ color: "#52525b", background: "rgba(255,255,255,0.04)" }}
+            >
+              <X size={16} />
+            </button>
           </div>
         </div>
 
@@ -214,32 +233,42 @@ function CountrySelectModal({
           <button
             onClick={onGhana}
             className="w-full flex items-center justify-between px-4 py-4 rounded-2xl transition-all duration-200 active:scale-[0.98]"
-            style={{ background: "#f9fafb", border: "1px solid rgba(0,0,0,0.08)" }}
+            style={{
+              background: "#1a1a24",
+              border: "1px solid rgba(255,255,255,0.06)",
+            }}
+            onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.08)")}
+            onMouseLeave={e => (e.currentTarget.style.background = "#1a1a24")}
           >
             <div className="flex items-center gap-3">
               <span className="text-2xl">🇬🇭</span>
               <div className="text-left">
-                <p className="font-semibold text-sm" style={{ color: "#111827" }}>Ghana</p>
-                <p className="text-xs" style={{ color: "#9ca3af" }}>GHS {prediction.price} — Mobile Money / Card</p>
+                <p className="font-semibold text-sm" style={{ color: "#f4f4f5" }}>Ghana</p>
+                <p className="text-xs" style={{ color: "#a1a1aa" }}>GHS {prediction.price} — Mobile Money / Card</p>
               </div>
             </div>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#52525b" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
           </button>
 
           {/* Nigeria */}
           <button
             onClick={onNigeria}
             className="w-full flex items-center justify-between px-4 py-4 rounded-2xl transition-all duration-200 active:scale-[0.98]"
-            style={{ background: "#f9fafb", border: "1px solid rgba(0,0,0,0.08)" }}
+            style={{
+              background: "#1a1a24",
+              border: "1px solid rgba(255,255,255,0.06)",
+            }}
+            onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.08)")}
+            onMouseLeave={e => (e.currentTarget.style.background = "#1a1a24")}
           >
             <div className="flex items-center gap-3">
               <span className="text-2xl">🇳🇬</span>
               <div className="text-left">
-                <p className="font-semibold text-sm" style={{ color: "#111827" }}>Nigeria</p>
-                <p className="text-xs" style={{ color: "#9ca3af" }}>₦{ngn.toLocaleString()} — Bank Transfer</p>
+                <p className="font-semibold text-sm" style={{ color: "#f4f4f5" }}>Nigeria</p>
+                <p className="text-xs" style={{ color: "#a1a1aa" }}>₦{ngn.toLocaleString()} — Telegram Payment</p>
               </div>
             </div>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#52525b" strokeWidth="2.5"><path d="M9 18l6-6-6-6"/></svg>
           </button>
         </div>
 
@@ -248,7 +277,7 @@ function CountrySelectModal({
           <button
             onClick={onClose}
             className="w-full py-3 text-sm font-medium rounded-2xl transition-all"
-            style={{ background: "#f3f4f6", color: "#6b7280" }}
+            style={{ background: "rgba(255,255,255,0.04)", color: "#52525b", border: "1px solid rgba(255,255,255,0.06)" }}
           >
             Cancel
           </button>
@@ -408,13 +437,21 @@ function PaymentModal({
   // Verifying overlay
   if (step === "verifying") {
     return (
-      <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ overscrollBehavior: "contain" }}>
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      <div
+        className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+        style={{ overscrollBehavior: "contain" }}
+      >
+        <div className="absolute inset-0 backdrop-blur-md" style={{ background: "rgba(0,0,0,0.7)" }} />
         <div
-          className="relative w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl flex flex-col items-center justify-center gap-5 py-14 px-8"
-          style={{ background: "#ffffff", border: "1px solid rgba(0,0,0,0.08)" }}
+          className="relative w-full max-w-sm overflow-hidden flex flex-col items-center justify-center gap-5 py-14 px-8"
+          style={{
+            background: "#111117",
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: "20px",
+            boxShadow: "0 24px 80px rgba(0,0,0,0.6)",
+          }}
         >
-          <div className="h-1 w-full absolute top-0 left-0" style={{ background: acc.text }} />
+          <div style={{ height: "3px", background: acc.text, width: "100%", position: "absolute", top: 0, left: 0 }} />
           <div
             className="w-16 h-16 rounded-2xl flex items-center justify-center"
             style={{ background: acc.bg, border: `1px solid ${acc.border}` }}
@@ -422,8 +459,8 @@ function PaymentModal({
             <Loader2 size={28} style={{ color: acc.text }} className="animate-spin" />
           </div>
           <div className="text-center">
-            <p className="font-semibold text-base mb-1" style={{ color: "#111827" }}>Verifying Payment…</p>
-            <p className="text-xs" style={{ color: "#9ca3af" }}>Confirming with Paystack and unlocking your prediction</p>
+            <p className="font-semibold text-base mb-1" style={{ color: "#f4f4f5" }}>Verifying Payment…</p>
+            <p className="text-xs" style={{ color: "#a1a1aa" }}>Confirming with Paystack and unlocking your prediction</p>
           </div>
         </div>
       </div>
@@ -431,90 +468,77 @@ function PaymentModal({
   }
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" onClick={onClose} style={{ overscrollBehavior: "contain" }}>
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+    <div
+      className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+      onClick={onClose}
+      style={{ overscrollBehavior: "contain" }}
+    >
+      <div className="absolute inset-0 backdrop-blur-md" style={{ background: "rgba(0,0,0,0.7)" }} />
 
       <div
-        className="relative w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl"
-        style={{ background: "#ffffff", border: "1px solid rgba(0,0,0,0.08)" }}
+        className="relative w-full max-w-sm overflow-hidden"
+        style={{
+          background: "#111117",
+          border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: "20px",
+          boxShadow: "0 24px 80px rgba(0,0,0,0.6)",
+        }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Accent strip */}
-        <div className="h-1 w-full" style={{ background: acc.text }} />
+        {/* Top accent line */}
+        <div style={{ height: "3px", background: acc.text, width: "100%" }} />
 
         {/* Header */}
-        <div className="px-6 pt-5 pb-4" style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
+        <div className="px-6 pt-5 pb-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
           <div className="flex items-start justify-between gap-3">
             <div>
-              <span
-                className="inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-lg mb-1.5"
-                style={{ background: acc.bg, color: acc.text, border: `1px solid ${acc.border}` }}
-              >
-                {prediction.oddsCategory} ODDS
-              </span>
-              <h2 className="font-semibold text-base leading-snug" style={{ color: "#111827" }}>{prediction.match}</h2>
-              <p className="text-xs mt-0.5 flex items-center gap-1.5" style={{ color: "#9ca3af" }}>
-                <Calendar size={11} />
-                {new Date(prediction.date).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}
-                {" · "}{prediction.league}
-              </p>
+              <p className="text-[11px] mb-1" style={{ color: "#a1a1aa" }}>{prediction.match}</p>
+              <p className="text-2xl font-bold" style={{ color: acc.text }}>GHS {prediction.price}</p>
             </div>
-            <button onClick={onClose} className="transition-colors mt-0.5 flex-shrink-0" style={{ color: "#9ca3af" }}>
-              <X size={18} />
+            <button
+              onClick={onClose}
+              className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors mt-0.5 flex-shrink-0"
+              style={{ color: "#52525b", background: "rgba(255,255,255,0.04)" }}
+            >
+              <X size={16} />
             </button>
           </div>
         </div>
 
-        {/* Tab switcher */}
-        <div className="flex" style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
+        {/* Pill tabs */}
+        <div className="px-6 pt-4 pb-2 flex gap-2">
           {(["pay", "restore"] as ModalTab[]).map((t) => (
             <button
               key={t}
               onClick={() => { setTab(t); setError(""); setRestoreError(""); }}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-semibold transition-all duration-200`}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-semibold rounded-xl transition-all duration-200"
               style={{
-                color: tab === t ? "#111827" : "#9ca3af",
-                borderBottom: tab === t ? `2px solid ${acc.text}` : "2px solid transparent",
+                background: tab === t ? acc.text : "rgba(255,255,255,0.04)",
+                color: tab === t ? "#ffffff" : "#a1a1aa",
+                border: tab === t ? "none" : "1px solid rgba(255,255,255,0.06)",
               }}
             >
               {t === "pay"
-                ? <><Lock size={11} />Pay &amp; Unlock</>
-                : <><RefreshCcw size={11} />Already Paid?</>}
+                ? <><Lock size={11} />Pay</>
+                : <><RefreshCcw size={11} />Restore Access</>}
             </button>
           ))}
         </div>
 
         {tab === "pay" ? (
           <>
-            {/* Price block */}
-            <div
-              className="mx-6 my-4 rounded-2xl px-5 py-4 flex items-center justify-between"
-              style={{ background: acc.bg, border: `1px solid ${acc.border}` }}
-            >
-              <div>
-                <p className="text-xs mb-0.5" style={{ color: "#9ca3af" }}>Access Price</p>
-                <p className="text-2xl font-bold" style={{ color: "#111827" }}>
-                  GHS <span style={{ color: acc.text }}>{prediction.price}</span>
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-xs mb-0.5" style={{ color: "#9ca3af" }}>Total Odds</p>
-                <p className="font-bold text-lg" style={{ color: acc.text }}>{prediction.odds}</p>
-              </div>
-            </div>
-
             {/* Perks */}
-            <div className="px-6 mb-4 flex gap-5">
+            <div className="px-6 pt-2 pb-3 flex gap-5">
               {[{ icon: <Shield size={12} />, label: "Secure payment" }, { icon: <Zap size={12} />, label: "Instant access" }]
                 .map(f => (
-                  <div key={f.label} className="flex items-center gap-1.5 text-xs" style={{ color: "#9ca3af" }}>{f.icon}{f.label}</div>
+                  <div key={f.label} className="flex items-center gap-1.5 text-xs" style={{ color: "#52525b" }}>{f.icon}{f.label}</div>
                 ))}
             </div>
 
             {/* Form */}
             <div className="px-6 pb-6 space-y-3">
               <div>
-                <label className="block text-xs font-medium mb-1.5" style={{ color: "#6b7280" }}>Your email address</label>
+                <label className="block text-xs font-medium mb-1.5" style={{ color: "#a1a1aa" }}>Your email address</label>
                 <input
                   type="email" placeholder="you@example.com" value={email} autoFocus
                   onChange={(e) => setEmail(e.target.value)}
@@ -523,39 +547,39 @@ function PaymentModal({
                   disabled={step === "paying"}
                 />
               </div>
-              {error && <p className="text-red-500 text-xs leading-relaxed">{error}</p>}
+              {error && <p className="text-red-400 text-xs leading-relaxed">{error}</p>}
               <button
                 onClick={handlePay} disabled={step === "paying"}
                 className="w-full flex items-center justify-center gap-2 font-bold text-sm py-3.5 rounded-2xl transition-all duration-300 active:scale-[0.97]"
                 style={{
-                  background: step === "paying" ? "rgba(255,60,0,0.4)" : "#ff3c00",
+                  background: step === "paying" ? "rgba(255,69,0,0.4)" : "#ff4500",
                   color: "#ffffff",
-                  boxShadow: step === "paying" ? "none" : "0 4px 16px rgba(255,60,0,0.25)",
+                  boxShadow: step === "paying" ? "none" : "0 4px 20px rgba(255,69,0,0.35)",
                 }}
               >
                 {step === "paying"
                   ? (<><Loader2 size={16} className="animate-spin" />Opening Paystack…</>)
                   : (<><Lock size={15} />Pay &amp; Unlock — GHS {prediction.price}</>)}
               </button>
-              <p className="text-center text-[11px]" style={{ color: "#d1d5db" }}>
+              <p className="text-center text-[11px]" style={{ color: "#52525b" }}>
                 One-time payment · Powered by Paystack
               </p>
             </div>
           </>
         ) : (
           /* Restore Access tab */
-          <div className="px-6 py-6 space-y-4">
+          <div className="px-6 py-5 space-y-4">
             <div
               className="rounded-xl p-4 flex gap-3"
-              style={{ background: "rgba(124,58,237,0.04)", border: "1px solid rgba(124,58,237,0.1)" }}
+              style={{ background: "rgba(168,85,247,0.06)", border: "1px solid rgba(168,85,247,0.15)" }}
             >
-              <Mail size={16} className="flex-shrink-0 mt-0.5" style={{ color: "#7c3aed" }} />
-              <p className="text-xs leading-relaxed" style={{ color: "#6b7280" }}>
+              <Mail size={16} className="flex-shrink-0 mt-0.5" style={{ color: "#a855f7" }} />
+              <p className="text-xs leading-relaxed" style={{ color: "#a1a1aa" }}>
                 Already paid for this prediction? Enter the email you used and we&apos;ll restore your access instantly — no need to pay again.
               </p>
             </div>
             <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: "#6b7280" }}>Email used at payment</label>
+              <label className="block text-xs font-medium mb-1.5" style={{ color: "#a1a1aa" }}>Email used at payment</label>
               <input
                 type="email" placeholder="you@example.com" value={restoreEmail} autoFocus
                 onChange={(e) => setRestoreEmail(e.target.value)}
@@ -564,21 +588,21 @@ function PaymentModal({
                 disabled={restoreLoading}
               />
             </div>
-            {restoreError && <p className="text-red-500 text-xs leading-relaxed">{restoreError}</p>}
+            {restoreError && <p className="text-red-400 text-xs leading-relaxed">{restoreError}</p>}
             <button
               onClick={handleRestore} disabled={restoreLoading}
               className="w-full flex items-center justify-center gap-2 font-bold text-sm py-3.5 rounded-2xl transition-all duration-300 active:scale-[0.97]"
               style={{
-                background: restoreLoading ? "rgba(124,58,237,0.4)" : "#7c3aed",
+                background: restoreLoading ? "rgba(168,85,247,0.4)" : "#a855f7",
                 color: "#ffffff",
-                boxShadow: restoreLoading ? "none" : "0 4px 16px rgba(124,58,237,0.25)",
+                boxShadow: restoreLoading ? "none" : "0 4px 20px rgba(168,85,247,0.3)",
               }}
             >
               {restoreLoading
                 ? (<><Loader2 size={16} className="animate-spin" />Checking…</>)
                 : (<><RefreshCcw size={15} />Restore My Access</>)}
             </button>
-            <p className="text-center text-[11px]" style={{ color: "#d1d5db" }}>
+            <p className="text-center text-[11px]" style={{ color: "#52525b" }}>
               One-time payment — access never expires
             </p>
           </div>
@@ -588,7 +612,7 @@ function PaymentModal({
   );
 }
 
-// ── Nigeria Bank Transfer Modal ───────────────────────────────────────────────
+// ── Nigeria Telegram Modal ─────────────────────────────────────────────────────
 function NigeriaPaymentModal({
   prediction,
   onClose,
@@ -597,6 +621,7 @@ function NigeriaPaymentModal({
   onClose: () => void;
 }) {
   const acc = ACCENT[prediction.oddsCategory] || ACCENT["2+"];
+  const ngn = Math.round(prediction.price * GHS_TO_NGN);
 
   return (
     <div
@@ -604,44 +629,56 @@ function NigeriaPaymentModal({
       onClick={onClose}
       style={{ overscrollBehavior: "contain" }}
     >
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      <div className="absolute inset-0 backdrop-blur-md" style={{ background: "rgba(0,0,0,0.7)" }} />
       <div
-        className="relative w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl"
-        style={{ background: "#ffffff", border: "1px solid rgba(0,0,0,0.08)" }}
+        className="relative w-full max-w-sm overflow-hidden"
+        style={{
+          background: "#111117",
+          border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: "20px",
+          boxShadow: "0 24px 80px rgba(0,0,0,0.6)",
+        }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Accent strip */}
-        <div className="h-1 w-full" style={{ background: acc.text }} />
+        {/* Top accent line */}
+        <div style={{ height: "3px", background: acc.text, width: "100%" }} />
 
         {/* Header */}
-        <div className="px-6 pt-5 pb-4" style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
+        <div className="px-6 pt-5 pb-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div
-                className="w-8 h-8 rounded-xl flex items-center justify-center text-base"
-                style={{ background: acc.bg, border: `1px solid ${acc.border}` }}
-              >
-                🏦
-              </div>
+              <span className="text-2xl">🇳🇬</span>
               <div>
-                <h2 className="font-semibold text-sm" style={{ color: "#111827" }}>Bank Transfer Details</h2>
-                <p className="text-xs" style={{ color: "#9ca3af" }}>Nigeria — OPay Transfer</p>
+                <h2 className="font-semibold text-sm" style={{ color: "#f4f4f5" }}>Pay via Telegram</h2>
+                <p className="text-xs" style={{ color: "#a1a1aa" }}>Nigeria — Instant Access</p>
               </div>
             </div>
-            <button onClick={onClose} style={{ color: "#9ca3af" }}><X size={18} /></button>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
+              style={{ color: "#52525b", background: "rgba(255,255,255,0.04)" }}
+            >
+              <X size={16} />
+            </button>
           </div>
         </div>
 
-        {/* Temporarily unavailable notice */}
-        <div
-          className="mx-6 mt-5 rounded-2xl px-5 py-6 flex flex-col items-center gap-3 text-center"
-          style={{ background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.15)" }}
-        >
-          <span className="text-3xl">🚫</span>
-          <div>
-            <p className="font-semibold text-sm mb-1" style={{ color: "#111827" }}>Payment Unavailable</p>
-            <p className="text-xs leading-relaxed" style={{ color: "#6b7280" }}>
-              Nigerian bank transfer is temporarily unavailable. Please contact us on Telegram and we&apos;ll sort out your payment manually.
+        {/* Info card */}
+        <div className="px-6 pt-5">
+          <div
+            className="rounded-2xl px-5 py-5 flex flex-col gap-3"
+            style={{ background: "#1a1a24", border: "1px solid rgba(255,255,255,0.06)" }}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium" style={{ color: "#a1a1aa" }}>Amount</span>
+              <span className="font-bold text-lg" style={{ color: "#f59e0b" }}>₦{ngn.toLocaleString()}</span>
+            </div>
+            <div
+              className="h-px w-full"
+              style={{ background: "rgba(255,255,255,0.06)" }}
+            />
+            <p className="text-xs leading-relaxed" style={{ color: "#a1a1aa" }}>
+              Send payment via Telegram and you&apos;ll receive your tips directly in the chat. Fast, secure, and instant.
             </p>
           </div>
         </div>
@@ -652,18 +689,27 @@ function NigeriaPaymentModal({
             href="https://t.me/boomVip25"
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full flex items-center justify-center gap-2 font-bold text-sm py-3.5 rounded-2xl transition-all duration-300"
-            style={{ background: "#ff3c00", color: "#ffffff", boxShadow: "0 4px 16px rgba(255,60,0,0.25)", display: "flex" }}
+            className="w-full flex items-center justify-center gap-2 font-bold text-sm py-3.5 rounded-2xl transition-all duration-300 active:scale-[0.97]"
+            style={{
+              background: "#10b981",
+              color: "#ffffff",
+              boxShadow: "0 4px 20px rgba(16,185,129,0.3)",
+              display: "flex",
+            }}
           >
             <ExternalLink size={15} />
-            Contact Support on Telegram
+            Open Telegram — @boomVip25
           </a>
           <button
             onClick={onClose}
             className="w-full py-3 text-sm font-medium rounded-2xl transition-all"
-            style={{ background: "#f3f4f6", color: "#6b7280" }}
+            style={{
+              background: "transparent",
+              color: "#a1a1aa",
+              border: "1px solid rgba(255,255,255,0.08)",
+            }}
           >
-            Close
+            Dismiss
           </button>
         </div>
       </div>
@@ -685,13 +731,18 @@ function UnlockedCard({ prediction, unlocked }: { prediction: Prediction; unlock
 
   return (
     <div className="card-glass overflow-hidden">
-      {/* Unlocked banner */}
+      {/* Unlocked success banner */}
       <div
-        className="px-4 py-2.5 flex items-center gap-2"
-        style={{ background: "rgba(16,185,129,0.04)", borderBottom: "1px solid rgba(16,185,129,0.1)" }}
+        className="px-4 py-3 flex items-center gap-2.5"
+        style={{
+          background: "rgba(16,185,129,0.1)",
+          borderBottom: "1px solid rgba(16,185,129,0.15)",
+        }}
       >
-        <CheckCircle size={14} className="flex-shrink-0" style={{ color: "#10b981" }} />
-        <span className="text-xs font-semibold" style={{ color: "#10b981" }}>Prediction Unlocked ✓</span>
+        <CheckCircle size={15} className="flex-shrink-0" style={{ color: "#10b981" }} />
+        <span className="text-xs font-bold tracking-wide" style={{ color: "#10b981" }}>
+          Prediction Unlocked!
+        </span>
         <span
           className="ml-auto text-[10px] font-bold px-2.5 py-0.5 rounded-lg"
           style={{ background: acc.bg, color: acc.text, border: `1px solid ${acc.border}` }}
@@ -710,7 +761,7 @@ function UnlockedCard({ prediction, unlocked }: { prediction: Prediction; unlock
               {unlocked.proofImageUrl && (
                 <span
                   className="absolute top-2 left-2 z-10 text-[10px] font-bold px-2 py-0.5 rounded-md"
-                  style={{ background: "rgba(0,0,0,0.55)", color: "#fff" }}
+                  style={{ background: "rgba(0,0,0,0.7)", color: "#fff" }}
                 >
                   BEFORE
                 </span>
@@ -736,8 +787,8 @@ function UnlockedCard({ prediction, unlocked }: { prediction: Prediction; unlock
 
       {/* Info */}
       <div className="px-5 pt-4">
-        <h3 className="font-semibold text-base mb-0.5 line-clamp-1" style={{ color: "#111827" }}>{prediction.match}</h3>
-        <p className="text-xs mb-4 flex items-center gap-1.5" style={{ color: "#9ca3af" }}>
+        <h3 className="font-semibold text-base mb-0.5 line-clamp-1" style={{ color: "#f4f4f5" }}>{prediction.match}</h3>
+        <p className="text-xs mb-4 flex items-center gap-1.5" style={{ color: "#a1a1aa" }}>
           <Calendar size={11} />
           {new Date(prediction.date).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}
           {" · "}{prediction.league}
@@ -746,26 +797,33 @@ function UnlockedCard({ prediction, unlocked }: { prediction: Prediction; unlock
         {/* Booking code */}
         {(unlocked.bookingCode || unlocked.content) && (
           <div
-            className="rounded-xl p-4 mb-3"
-            style={{ background: acc.bg, border: `1px solid ${acc.border}` }}
+            className="rounded-xl mb-3 overflow-hidden"
+            style={{ background: "#1a1a24", border: `1px solid ${acc.border}` }}
           >
-            <div className="flex items-center justify-between mb-2">
+            <div
+              className="px-4 py-2.5 flex items-center justify-between"
+              style={{ borderBottom: `1px solid ${acc.border}` }}
+            >
               <div className="flex items-center gap-2">
                 <Trophy size={13} style={{ color: acc.text }} />
-                <span className="text-xs font-semibold" style={{ color: acc.text }}>
+                <span className="text-xs font-semibold" style={{ color: "#a1a1aa" }}>
                   {unlocked.bookingCode ? "Booking Code" : "Prediction Tip"}
                 </span>
               </div>
               <button
                 onClick={copyCode}
-                className="flex items-center gap-1 text-xs transition-colors"
-                style={{ color: "#9ca3af" }}
+                className="flex items-center gap-1.5 text-xs px-3 py-1 rounded-lg transition-all"
+                style={{
+                  background: copied ? "rgba(16,185,129,0.1)" : "rgba(255,255,255,0.04)",
+                  color: copied ? "#10b981" : "#a1a1aa",
+                  border: copied ? "1px solid rgba(16,185,129,0.2)" : "1px solid rgba(255,255,255,0.06)",
+                }}
               >
-                {copied ? <><Check size={11} style={{ color: "#10b981" }} />Copied!</> : <><Copy size={11} />Copy</>}
+                {copied ? <><Check size={11} />Copied!</> : <><Copy size={11} />Copy</>}
               </button>
             </div>
             <p
-              className="font-bold text-xl tracking-widest text-center py-2"
+              className="font-bold text-xl tracking-widest text-center py-4 px-4"
               style={{ color: acc.text, fontFamily: "monospace", letterSpacing: "0.15em" }}
             >
               {unlocked.bookingCode || unlocked.content}
@@ -776,25 +834,37 @@ function UnlockedCard({ prediction, unlocked }: { prediction: Prediction; unlock
         {/* Tips list */}
         {unlocked.tips && unlocked.tips.length > 0 && (
           <div className="mb-4 space-y-1.5">
-            <p className="text-xs font-medium mb-2" style={{ color: "#9ca3af" }}>What to bet:</p>
+            <p className="text-xs font-medium mb-2" style={{ color: "#52525b" }}>What to bet:</p>
             {unlocked.tips.map((tip, i) => (
               <div
                 key={i}
-                className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs"
-                style={{ background: "#f7f7f8", border: "1px solid rgba(0,0,0,0.04)", color: "#374151" }}
+                className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs"
+                style={{
+                  background: "#1a1a24",
+                  border: "1px solid rgba(255,255,255,0.04)",
+                  color: "#f4f4f5",
+                }}
               >
-                <CheckCircle size={11} style={{ color: "#10b981" }} className="flex-shrink-0" />
+                <CheckCircle2 size={12} style={{ color: "#10b981" }} className="flex-shrink-0" />
                 {tip}
               </div>
             ))}
           </div>
         )}
 
-        {/* Permanent access */}
-        <p className="text-[10px] text-right flex items-center justify-end gap-1 pb-4" style={{ color: "#d1d5db" }}>
-          <CheckCircle size={10} style={{ color: "#10b981" }} />
-          One-time payment · Access never expires
-        </p>
+        {/* Footer */}
+        <div className="flex items-center justify-between pb-4">
+          <div className="flex items-center gap-2 text-xs" style={{ color: "#52525b" }}>
+            <Calendar size={11} />
+            <span>{prediction.league}</span>
+            <span>·</span>
+            <span>Odds: <span style={{ color: acc.text, fontWeight: 700 }}>{prediction.odds}</span></span>
+          </div>
+          <p className="text-[10px] flex items-center gap-1" style={{ color: "#52525b" }}>
+            <CheckCircle size={10} style={{ color: "#10b981" }} />
+            Access never expires
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -820,39 +890,58 @@ function LockedCard({
       onClick={onClickUnlock}
     >
       {/* Image / locked area */}
-      <div className="relative h-52 overflow-hidden" style={{ background: "#f7f7f8" }}>
+      <div
+        className="relative h-52 overflow-hidden"
+        style={{ background: "#0d0d12" }}
+      >
         {hasImage ? (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={prediction.previewImageUrl!}
             alt="Prediction slip preview"
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 md:group-hover:scale-110"
-            style={{ filter: "blur(12px) brightness(0.7) saturate(0.5)", transform: "scale(1.1)" }}
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 md:group-hover:scale-110"
+            style={{
+              filter: "blur(14px) brightness(0.5)",
+              transform: "scale(1.1)",
+            }}
           />
         ) : (
           <div
-            className="absolute inset-0"
+            className="absolute inset-0 flex items-center justify-center"
             style={{
-              background: `linear-gradient(135deg, ${acc.bg} 0%, #f7f7f8 100%)`,
+              background: `linear-gradient(135deg, #111117 0%, #0d0d12 60%, ${acc.bg} 100%)`,
             }}
-          />
+          >
+            {/* Pattern overlay */}
+            <div
+              className="absolute inset-0 opacity-5"
+              style={{
+                backgroundImage: `repeating-linear-gradient(45deg, ${acc.text} 0, ${acc.text} 1px, transparent 0, transparent 50%)`,
+                backgroundSize: "24px 24px",
+              }}
+            />
+            <span
+              className="relative z-10 text-4xl font-black opacity-10 select-none"
+              style={{ color: acc.text, fontFamily: "monospace" }}
+            >
+              {prediction.oddsCategory}
+            </span>
+          </div>
         )}
 
-        {/* Overlay */}
+        {/* Bottom gradient overlay */}
         <div
           className="absolute inset-0"
           style={{
-            background: hasImage
-              ? "linear-gradient(180deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.8) 100%)"
-              : "linear-gradient(180deg, transparent 0%, rgba(247,247,248,0.6) 100%)",
+            background: "linear-gradient(180deg, transparent 0%, rgba(9,9,11,0.85) 100%)",
           }}
         />
 
         {/* Odds badge */}
         <span
-          className="absolute top-3 left-3 z-10 text-[10px] font-bold px-3 py-1 rounded-lg shadow-sm"
+          className="absolute top-3 left-3 z-10 text-[10px] font-bold px-3 py-1 rounded-full shadow-sm"
           style={{
-            background: "#ffffff",
+            background: acc.bg,
             color: acc.text,
             border: `1px solid ${acc.border}`,
           }}
@@ -863,16 +952,19 @@ function LockedCard({
         {/* Lock icon + CTA */}
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3">
           <div
-            className="w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 md:group-hover:scale-110 shadow-lg"
+            className="w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 md:group-hover:scale-110"
             style={{
-              background: "#ffffff",
-              border: `1px solid ${acc.border}`,
+              background: "rgba(9,9,11,0.7)",
+              border: `1px solid rgba(255,255,255,0.1)`,
+              boxShadow: `0 0 0 0 ${acc.glow}`,
             }}
+            onMouseEnter={e => (e.currentTarget.style.boxShadow = `0 0 20px ${acc.glow}`)}
+            onMouseLeave={e => (e.currentTarget.style.boxShadow = `0 0 0 0 ${acc.glow}`)}
           >
             <Lock size={22} style={{ color: acc.text }} strokeWidth={2} />
           </div>
           <span
-            className="text-xs font-semibold px-4 py-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 shadow-md"
+            className="text-xs font-semibold px-4 py-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0"
             style={{ background: acc.text, color: "#ffffff" }}
           >
             Click to unlock
@@ -880,34 +972,39 @@ function LockedCard({
         </div>
       </div>
 
-      {/* Card info */}
-      <div className="px-5 py-4">
-        <h3 className="font-semibold text-base mb-1 line-clamp-1" style={{ color: "#111827" }}>{prediction.match}</h3>
-        <div className="flex items-center gap-1.5 text-xs mb-3" style={{ color: "#9ca3af" }}>
+      {/* Card body */}
+      <div className="px-5 py-4" style={{ background: "#111117" }}>
+        <h3
+          className="font-bold text-base mb-1 line-clamp-1"
+          style={{ color: "#f4f4f5" }}
+        >
+          {prediction.match}
+        </h3>
+        <div className="flex items-center gap-1.5 text-xs mb-3" style={{ color: "#a1a1aa" }}>
           <Calendar size={12} />
           <span>
             {new Date(prediction.date).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}
           </span>
           {prediction.league && (<><span className="mx-0.5">·</span><span className="truncate">{prediction.league}</span></>)}
         </div>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-1.5">
-            <span className="text-xs" style={{ color: "#9ca3af" }}>Odds:</span>
+            <span className="text-xs" style={{ color: "#a1a1aa" }}>Odds:</span>
             <span className="font-bold text-sm" style={{ color: acc.text }}>{prediction.odds}</span>
           </div>
-          <span className="font-bold text-lg" style={{ color: "#ff3c00" }}>GHS {prediction.price}</span>
+          <span className="font-bold text-lg" style={{ color: acc.text }}>GHS {prediction.price}</span>
         </div>
 
         {/* CTA bar */}
         <div
-          className="mt-3 w-full text-center text-xs font-semibold py-3 rounded-xl transition-all duration-300"
+          className="w-full text-center text-xs font-semibold py-3 rounded-xl transition-all duration-300 group-hover:shadow-lg"
           style={{
             background: acc.bg,
             border: `1px solid ${acc.border}`,
             color: acc.text,
           }}
         >
-          🔒 Unlock Prediction — GHS {prediction.price}
+          🔒 Unlock — GHS {prediction.price}
         </div>
       </div>
     </div>
@@ -984,7 +1081,7 @@ export default function PredictionCard({ prediction, animationDelay = 0 }: Props
         />
       )}
 
-      {/* Step 2b — Nigeria: Bank transfer details */}
+      {/* Step 2b — Nigeria: Telegram payment */}
       {nigeriaModalOpen && (
         <NigeriaPaymentModal
           prediction={prediction}

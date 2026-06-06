@@ -1,5 +1,5 @@
 #!/bin/bash
-# ─── BoomTips25 — One-command startup ──────────────────────────────────────────
+# ─── Kaana Predictions — One-command local startup ─────────────────────────────
 # Kills everything, starts backend + frontend + two Cloudflare tunnels,
 # auto-updates .env.local with the fresh backend tunnel URL.
 
@@ -9,24 +9,29 @@ export PATH=/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:$PATH
 BACKEND_DIR="$(cd "$(dirname "$0")/backend" && pwd)"
 FRONTEND_DIR="$(cd "$(dirname "$0")/frontend" && pwd)"
 ENV_LOCAL="$FRONTEND_DIR/.env.local"
-PAYSTACK_KEY="pk_live_cea98412532c144d295ac5f848ab73509bd20330"
+
+# ── Load Paystack key from backend .env ───────────────────────────────────────
+PAYSTACK_KEY=$(grep '^NEXT_PUBLIC_PAYSTACK_KEY=' "$ENV_LOCAL" 2>/dev/null | cut -d'=' -f2 || echo "")
+if [ -z "$PAYSTACK_KEY" ] || [[ "$PAYSTACK_KEY" == REPLACE* ]]; then
+  echo "⚠️  Warning: NEXT_PUBLIC_PAYSTACK_KEY is not set in frontend/.env.local"
+  echo "   Add your Paystack public key before payments will work."
+fi
 
 echo ""
-echo "🔥 BoomTips25 — Starting up..."
+echo "🔥 Kaana Predictions — Starting up..."
 echo "─────────────────────────────────────"
 
-# ── 1. Kill anything already running on BoomTips25 ports ─────────────────────
-echo "⏹  Stopping old BoomTips25 processes..."
+# ── 1. Kill anything already running on Kaana Predictions ports ───────────────
+echo "⏹  Stopping old processes..."
 lsof -ti:5002 | xargs kill -9 2>/dev/null || true
 lsof -ti:3001 | xargs kill -9 2>/dev/null || true
-# Kill only BoomTips25 cloudflare tunnels (identified by port)
 ps aux | grep 'cloudflared.*5002\|cloudflared.*3001' | grep -v grep | awk '{print $2}' | xargs kill -9 2>/dev/null || true
 sleep 1
 
 # ── 2. Start backend ──────────────────────────────────────────────────────────
 echo "⚙️  Starting backend on port 5002..."
 cd "$BACKEND_DIR"
-node server.js > /tmp/bt-backend.log 2>&1 &
+node server.js > /tmp/kaana-backend.log 2>&1 &
 BACKEND_PID=$!
 
 # Wait until backend is up
@@ -40,27 +45,29 @@ done
 
 # ── 3. Tunnel backend ─────────────────────────────────────────────────────────
 echo "🌐 Creating backend tunnel..."
-cloudflared tunnel --url http://localhost:5002 > /tmp/bt-tunnel-backend.log 2>&1 &
+cloudflared tunnel --url http://localhost:5002 > /tmp/kaana-tunnel-backend.log 2>&1 &
 sleep 8
 
-BACKEND_URL=$(grep -o 'https://[a-z0-9-]*\.trycloudflare\.com' /tmp/bt-tunnel-backend.log | head -1)
+BACKEND_URL=$(grep -o 'https://[a-z0-9-]*\.trycloudflare\.com' /tmp/kaana-tunnel-backend.log | head -1)
 if [ -z "$BACKEND_URL" ]; then
-  echo "❌ Could not get backend tunnel URL. Check /tmp/bt-tunnel-backend.log"
+  echo "❌ Could not get backend tunnel URL. Check /tmp/kaana-tunnel-backend.log"
   exit 1
 fi
 echo "✅ Backend tunnel: $BACKEND_URL"
 
 # ── 4. Update frontend .env.local with new backend URL ───────────────────────
-echo "📝 Updating .env.local..."
+echo "📝 Updating frontend/.env.local with tunnel URL..."
+# Preserve the Paystack key, update only the API URL
+PAYSTACK_KEY_CURRENT=$(grep '^NEXT_PUBLIC_PAYSTACK_KEY=' "$ENV_LOCAL" 2>/dev/null | cut -d'=' -f2 || echo "REPLACE_WITH_YOUR_PAYSTACK_PUBLIC_KEY")
 cat > "$ENV_LOCAL" <<EOF
 NEXT_PUBLIC_API_URL=${BACKEND_URL}/api
-NEXT_PUBLIC_PAYSTACK_KEY=${PAYSTACK_KEY}
+NEXT_PUBLIC_PAYSTACK_KEY=${PAYSTACK_KEY_CURRENT}
 EOF
 
 # ── 5. Start frontend ─────────────────────────────────────────────────────────
 echo "🖥  Starting frontend on port 3001..."
 cd "$FRONTEND_DIR"
-PORT=3001 npm run dev > /tmp/bt-frontend.log 2>&1 &
+PORT=3001 npm run dev > /tmp/kaana-frontend.log 2>&1 &
 FRONTEND_PID=$!
 
 # Wait until frontend is up
@@ -74,12 +81,12 @@ done
 
 # ── 6. Tunnel frontend ────────────────────────────────────────────────────────
 echo "🌐 Creating frontend tunnel..."
-cloudflared tunnel --url http://localhost:3001 > /tmp/bt-tunnel-frontend.log 2>&1 &
+cloudflared tunnel --url http://localhost:3001 > /tmp/kaana-tunnel-frontend.log 2>&1 &
 sleep 8
 
-FRONTEND_URL=$(grep -o 'https://[a-z0-9-]*\.trycloudflare\.com' /tmp/bt-tunnel-frontend.log | head -1)
+FRONTEND_URL=$(grep -o 'https://[a-z0-9-]*\.trycloudflare\.com' /tmp/kaana-tunnel-frontend.log | head -1)
 if [ -z "$FRONTEND_URL" ]; then
-  echo "❌ Could not get frontend tunnel URL. Check /tmp/bt-tunnel-frontend.log"
+  echo "❌ Could not get frontend tunnel URL. Check /tmp/kaana-tunnel-frontend.log"
   exit 1
 fi
 echo "✅ Frontend tunnel: $FRONTEND_URL"
@@ -87,7 +94,7 @@ echo "✅ Frontend tunnel: $FRONTEND_URL"
 # ── 7. Print summary ──────────────────────────────────────────────────────────
 echo ""
 echo "══════════════════════════════════════════════"
-echo "  🎉 BoomTips25 is LIVE!"
+echo "  🎉 Kaana Predictions is LIVE!"
 echo "══════════════════════════════════════════════"
 echo ""
 echo "  📱 Share this link (phone / public):"

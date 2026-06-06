@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name        : 'boomtips25-api',
+      name        : 'kaana-api',
       script      : 'server.js',
       instances   : 1,
       autorestart : true,

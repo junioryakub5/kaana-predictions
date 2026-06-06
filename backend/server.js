@@ -85,7 +85,7 @@ if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY) {
   console.log('📦 Mode: In-Memory (add SUPABASE_URL + SUPABASE_SERVICE_KEY to .env)');
 }
 
-const BUCKET = 'boomtips25';
+const BUCKET = process.env.SUPABASE_BUCKET || 'kaana-tips';
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 },
@@ -650,6 +650,6 @@ app.use((err, _req, res, _next) => {
 
 // ─── Start ────────────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`🚀 BoomTips25 API on port ${PORT}`);
-  // VULN-10 FIX: Never log sensitive tokens
+  console.log(`🚀 Kaana Predictions API on port ${PORT}`);
+  // Never log sensitive tokens
 });
