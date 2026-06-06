@@ -649,7 +649,7 @@ function NigeriaPaymentModal({
             <div className="flex items-center gap-2.5">
               <span className="text-2xl">🇳🇬</span>
               <div>
-                <h2 className="font-semibold text-sm" style={{ color: "#f4f4f5" }}>Pay via Telegram</h2>
+                <h2 className="font-semibold text-sm" style={{ color: "#f4f4f5" }}>Pay via Transfer</h2>
                 <p className="text-xs" style={{ color: "#a1a1aa" }}>Nigeria — Instant Access</p>
               </div>
             </div>
@@ -666,27 +666,46 @@ function NigeriaPaymentModal({
         {/* Info card */}
         <div className="px-6 pt-5">
           <div
-            className="rounded-2xl px-5 py-5 flex flex-col gap-3"
+            className="rounded-2xl px-5 py-4"
             style={{ background: "#1a1a24", border: "1px solid rgba(255,255,255,0.06)" }}
           >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium" style={{ color: "#a1a1aa" }}>Amount</span>
+            {/* Amount row */}
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-medium" style={{ color: "#a1a1aa" }}>Amount to send</span>
               <span className="font-bold text-lg" style={{ color: "#f59e0b" }}>₦{ngn.toLocaleString()}</span>
             </div>
-            <div
-              className="h-px w-full"
-              style={{ background: "rgba(255,255,255,0.06)" }}
-            />
-            <p className="text-xs leading-relaxed" style={{ color: "#a1a1aa" }}>
-              Send payment via Telegram and you&apos;ll receive your tips directly in the chat. Fast, secure, and instant.
-            </p>
+            <div className="h-px w-full mb-4" style={{ background: "rgba(255,255,255,0.06)" }} />
+            {/* Bank details */}
+            <div className="space-y-2.5">
+              {([
+                { label: "Bank", value: "Moniepoint MFB", highlight: false },
+                { label: "Account Number", value: "7080706417", highlight: true },
+                { label: "Account Name", value: "Atinuolaji Alakija", highlight: false },
+              ] as { label: string; value: string; highlight: boolean }[]).map(({ label, value, highlight }) => (
+                <div key={label} className="flex items-center justify-between">
+                  <span className="text-xs" style={{ color: "#52525b" }}>{label}</span>
+                  <span
+                    className="text-xs font-semibold"
+                    style={{ color: highlight ? "#f59e0b" : "#f4f4f5", letterSpacing: highlight ? "0.06em" : undefined }}
+                  >
+                    {value}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
+        </div>
+        {/* Instruction */}
+        <div className="px-6 pt-3">
+          <p className="text-xs leading-relaxed text-center" style={{ color: "#52525b" }}>
+            After sending, share your receipt on Telegram to get instant access.
+          </p>
         </div>
 
         {/* Actions */}
         <div className="px-6 py-5 space-y-2.5">
           <a
-            href="https://t.me/boomVip25"
+            href="https://t.me/Tipster_kaana"
             target="_blank"
             rel="noopener noreferrer"
             className="w-full flex items-center justify-center gap-2 font-bold text-sm py-3.5 rounded-2xl transition-all duration-300 active:scale-[0.97]"
@@ -698,7 +717,7 @@ function NigeriaPaymentModal({
             }}
           >
             <ExternalLink size={15} />
-            Open Telegram — @boomVip25
+            Send Receipt — @Tipster_kaana
           </a>
           <button
             onClick={onClose}
