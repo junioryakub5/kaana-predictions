@@ -65,6 +65,7 @@ app.use('/api/', generalLimiter);
 
 // Body parsing — IMPORTANT: raw body needed for webhook HMAC verification
 app.use('/api/payment/webhook', express.raw({ type: 'application/json' }));
+app.use('/api/payment/flw/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json({ limit: '10mb' }));
 
 // ─── Admin auth ───────────────────────────────────────────────────────────────
@@ -128,7 +129,7 @@ const toP = r => r ? ({ _id:r.id, match:r.match, league:r.league, odds:r.odds,
 
 const toMoney = r => r ? ({ _id:r.id, predictionId:r.prediction_id, predictionTitle:r.prediction_title,
   reference:r.reference, email:r.email, amount:r.amount, currency:r.currency,
-  status:r.status, accessToken:r.access_token, createdAt:r.created_at }) : null;
+  status:r.status, accessToken:r.access_token, createdAt:r.created_at, provider:r.provider||'paystack' }) : null;
 
 // ─── DB helpers (Supabase or in-memory) ──────────────────────────────────────
 const db = {
@@ -237,7 +238,7 @@ const db = {
         prediction_id:data.predictionId, prediction_title:data.predictionTitle,
         reference:data.reference, email:data.email.toLowerCase().trim(),
         amount:data.amount, currency:data.currency||'GHS',
-        status:data.status, access_token:data.accessToken||uuidv4(),
+        status:data.status, access_token:data.accessToken||uuidv4(), provider:data.provider||'paystack',
       }).select().single();
       if (error) throw error;
       return toMoney(d);
@@ -265,32 +266,87 @@ const db = {
         supabase.from('predictions').select('*',{count:'exact',head:true}).eq('status','completed'),
       ]);
 
-      // Paginate through ALL successful payments — bypasses Supabase's 1,000-row default cap
+      // Wins / Losses
+      const [{ count:totalWins }, { count:totalLosses }] = await Promise.all([
+        supabase.from('predictions').select('*',{count:'exact',head:true}).eq('result','win'),
+        supabase.from('predictions').select('*',{count:'exact',head:true}).eq('result','loss'),
+      ]);
+
+      // Paginate through ALL successful payments
       const PAGE = 1000;
       let allPayments = [];
       let from = 0;
       while (true) {
         const { data, error } = await supabase
-          .from('payments')
-          .select('*')
-          .eq('status', 'success')
-          .order('created_at', { ascending: false })
-          .range(from, from + PAGE - 1);
+          .from('payments').select('*').eq('status','success')
+          .order('created_at', { ascending: false }).range(from, from + PAGE - 1);
         if (error) throw error;
         if (!data || data.length === 0) break;
         allPayments = allPayments.concat(data.map(toMoney));
-        if (data.length < PAGE) break; // last page reached
+        if (data.length < PAGE) break;
         from += PAGE;
       }
 
-      return { total, active, completed, payments: allPayments };
+      const now = new Date();
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const weekStart  = new Date(now); weekStart.setDate(now.getDate() - 7);
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+      const ghPayments  = allPayments.filter(p => p.provider !== 'flutterwave');
+      const ngPayments  = allPayments.filter(p => p.provider === 'flutterwave');
+      const todayPayments = allPayments.filter(p => new Date(p.createdAt) >= todayStart);
+      const weekPayments  = allPayments.filter(p => new Date(p.createdAt) >= weekStart);
+      const monthPayments = allPayments.filter(p => new Date(p.createdAt) >= monthStart);
+
+      const sum = (arr, key='amount') => arr.reduce((s, p) => s + (Number(p[key]) || 0), 0);
+      const recentPayments = allPayments.slice(0, 10);
+
+      return {
+        total, active, completed,
+        totalRevenue:        sum(ghPayments),
+        salesCount:          allPayments.length,
+        recentPayments,
+        ghanaRevenue:        sum(ghPayments),
+        nigeriaRevenue:      sum(ngPayments),
+        ghanaSales:          ghPayments.length,
+        nigeriaSales:        ngPayments.length,
+        todayRevenue:        sum(todayPayments),
+        todayGhanaRevenue:   sum(todayPayments.filter(p => p.provider !== 'flutterwave')),
+        todayNigeriaRevenue: sum(todayPayments.filter(p => p.provider === 'flutterwave')),
+        todaySales:          todayPayments.length,
+        weekRevenue:         sum(weekPayments.filter(p => p.provider !== 'flutterwave')),
+        weekSales:           weekPayments.length,
+        monthRevenue:        sum(monthPayments.filter(p => p.provider !== 'flutterwave')),
+        monthSales:          monthPayments.length,
+        totalWins:           totalWins || 0,
+        totalLosses:         totalLosses || 0,
+      };
     }
-    const payments = memPayments.filter(p => p.status==='success');
+    // In-memory fallback
+    const payments = memPayments.filter(p => p.status === 'success');
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekStart  = new Date(now); weekStart.setDate(now.getDate() - 7);
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const ghPayments = payments.filter(p => p.provider !== 'flutterwave');
+    const ngPayments = payments.filter(p => p.provider === 'flutterwave');
+    const todayPay   = payments.filter(p => new Date(p.createdAt) >= todayStart);
+    const weekPay    = payments.filter(p => new Date(p.createdAt) >= weekStart);
+    const monthPay   = payments.filter(p => new Date(p.createdAt) >= monthStart);
+    const sum = (arr) => arr.reduce((s, p) => s + (Number(p.amount) || 0), 0);
     return {
-      total:memPredictions.length,
-      active:memPredictions.filter(p=>p.status==='active').length,
+      total:memPredictions.length, active:memPredictions.filter(p=>p.status==='active').length,
       completed:memPredictions.filter(p=>p.status==='completed').length,
-      payments,
+      totalRevenue:sum(ghPayments), salesCount:payments.length,
+      recentPayments:payments.slice(0,10),
+      ghanaRevenue:sum(ghPayments), nigeriaRevenue:sum(ngPayments),
+      ghanaSales:ghPayments.length, nigeriaSales:ngPayments.length,
+      todayRevenue:sum(todayPay), todayGhanaRevenue:sum(todayPay.filter(p=>p.provider!=='flutterwave')),
+      todayNigeriaRevenue:sum(todayPay.filter(p=>p.provider==='flutterwave')), todaySales:todayPay.length,
+      weekRevenue:sum(weekPay.filter(p=>p.provider!=='flutterwave')), weekSales:weekPay.length,
+      monthRevenue:sum(monthPay.filter(p=>p.provider!=='flutterwave')), monthSales:monthPay.length,
+      totalWins:memPredictions.filter(p=>p.result==='win').length,
+      totalLosses:memPredictions.filter(p=>p.result==='loss').length,
     };
   },
 };
@@ -530,6 +586,119 @@ app.post('/api/payment/webhook', async (req, res) => {
   }
 });
 
+// ─── Routes: Flutterwave (Nigeria — NGN) ────────────────────────────────────
+app.post('/api/payment/flw/initiate', paymentLimiter, async (req, res) => {
+  try {
+    const { email, predictionId } = req.body;
+    if (!email || !predictionId) return res.status(400).json({ error: 'email and predictionId required' });
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) return res.status(400).json({ error: 'Invalid email format' });
+    const prediction = await db.findPredictionById(predictionId);
+    if (!prediction) return res.status(404).json({ error: 'Prediction not found' });
+    const GHS_TO_NGN = parseFloat(process.env.RATE_GHS_NGN || '125');
+    const amountNGN  = Math.round(prediction.price * GHS_TO_NGN);
+    const reference  = `KP_FLW_${uuidv4().replace(/-/g,'').slice(0,16)}`;
+    console.log('FLW reference generated — ref:', reference, 'amount NGN:', amountNGN);
+    res.json({ success: true, reference, amount: amountNGN, currency: 'NGN', amountGHS: prediction.price });
+  } catch (err) {
+    safeError(res, 500, 'Failed to initiate payment', err);
+  }
+});
+
+app.post('/api/payment/flw/verify', paymentLimiter, async (req, res) => {
+  try {
+    const { reference, predictionId, email, transaction_id, amount, currency } = req.body;
+    if (!reference || !predictionId) return res.status(400).json({ error: 'reference and predictionId required' });
+
+    const existing = await db.findPayment({ reference, status:'success' });
+    if (existing) return res.json({ success:true, reference:existing.reference, accessToken:existing.accessToken, message:'Already verified' });
+
+    const prediction = await db.findPredictionById(predictionId);
+    if (!prediction) return res.status(404).json({ error: 'Prediction not found' });
+
+    const GHS_TO_NGN = parseFloat(process.env.RATE_GHS_NGN || '125');
+    const expectedNGN = Math.round(prediction.price * GHS_TO_NGN);
+    const paidAmount  = Number(amount) || 0;
+    if (paidAmount > 0 && paidAmount < expectedNGN * 0.95) {
+      console.error(`FLW AMOUNT LOW! Expected ~${expectedNGN} NGN, got ${paidAmount}. Ref: ${reference}`);
+      return res.status(402).json({ error: 'Payment amount insufficient. Please contact support.' });
+    }
+
+    const accessToken = uuidv4();
+    try {
+      await db.createPayment({
+        predictionId, predictionTitle: prediction.match, reference,
+        email: (email || '').toLowerCase().trim(),
+        amount: paidAmount || expectedNGN, currency: currency || 'NGN',
+        status: 'success', accessToken, provider: 'flutterwave',
+        meta: { transaction_id },
+      });
+    } catch (insertErr) {
+      if (insertErr?.message?.includes('unique constraint') || insertErr?.code === '23505') {
+        const saved = await db.findPayment({ reference, status:'success' });
+        if (saved) return res.json({ success:true, reference:saved.reference, accessToken:saved.accessToken });
+      }
+      throw insertErr;
+    }
+
+    console.log('FLW payment recorded — ref:', reference, 'amount:', paidAmount || expectedNGN, currency || 'NGN', '| txn_id:', transaction_id);
+    res.json({ success:true, reference, accessToken });
+  } catch (err) {
+    console.error('FLW verify error:', err.message);
+    safeError(res, 500, 'Flutterwave verification failed', err);
+  }
+});
+
+app.post('/api/payment/flw/webhook', async (req, res) => {
+  try {
+    const secret = process.env.FLW_WEBHOOK_SECRET;
+    const signature = req.headers['verif-hash'];
+
+    if (secret && signature && signature !== secret) {
+      console.error('FLW Webhook: invalid signature');
+      return res.sendStatus(401);
+    }
+
+    const event = JSON.parse(req.body.toString());
+    console.log('FLW Webhook event:', event.event, '| ref:', event.data?.tx_ref);
+
+    if (event.event === 'charge.completed' && event.data?.status === 'successful') {
+      const txn = event.data;
+      const reference = txn.tx_ref;
+
+      const existing = await db.findPayment({ reference, status:'success' });
+      if (existing) { console.log('FLW Webhook: already processed ref:', reference); return res.sendStatus(200); }
+
+      const predictionId = txn.meta?.predictionId;
+      if (!predictionId) { console.error('FLW Webhook: no predictionId for ref:', reference); return res.sendStatus(200); }
+
+      const prediction = await db.findPredictionById(predictionId);
+      if (!prediction) { console.error('FLW Webhook: prediction not found for ref:', reference); return res.sendStatus(200); }
+
+      const GHS_TO_NGN = parseFloat(process.env.RATE_GHS_NGN || '125');
+      const expectedNGN = Math.round(prediction.price * GHS_TO_NGN);
+      if (txn.amount < expectedNGN * 0.95) {
+        console.error(`FLW Webhook: amount mismatch! Expected ~${expectedNGN}, got ${txn.amount}. Ref: ${reference}`);
+        return res.sendStatus(200);
+      }
+
+      const accessToken = uuidv4();
+      await db.createPayment({
+        predictionId, predictionTitle: prediction.match, reference,
+        email: (txn.customer?.email || '').toLowerCase().trim(),
+        amount: txn.amount, currency: txn.currency || 'NGN',
+        status: 'success', accessToken, provider: 'flutterwave',
+      });
+      console.log('FLW Webhook: payment recorded — ref:', reference);
+    }
+
+    res.sendStatus(200);
+  } catch (err) {
+    console.error('FLW Webhook error:', err.message);
+    res.sendStatus(500);
+  }
+});
+
 app.post('/api/payment/restore', paymentLimiter, async (req, res) => {
   try {
     const { email, predictionId } = req.body;
@@ -614,15 +783,29 @@ app.get('/api/admin/payments', adminAuth, async (req, res) => {
 
 app.get('/api/admin/stats', adminAuth, async (req, res) => {
   try {
-    const { total, active, completed, payments } = await db.stats();
-    const totalRevenue = payments.reduce((s,p) => s+(p.amount||0), 0);
-    const recentActivity = [...payments]
-      .sort((a,b) => new Date(b.createdAt)-new Date(a.createdAt)).slice(0,20)
-      .map(p => ({ _id:p._id, email:p.email, predictionTitle:p.predictionTitle||'—',
-        amount:p.amount, currency:p.currency||'GHS', status:p.status, createdAt:p.createdAt }));
+    const s = await db.stats();
+    const recentActivity = (s.recentPayments||[]).map(p => ({
+      _id:p._id, email:p.email, predictionTitle:p.predictionTitle||'—',
+      amount:p.amount, currency:p.currency||'GHS', status:p.status, createdAt:p.createdAt,
+      provider:p.provider||'paystack',
+    }));
     res.json({ success:true, data:{
-      totalSlips:total, activeSlips:active, completedSlips:completed,
-      totalRevenue, totalSales:payments.length, recentActivity,
+      totalSlips:s.total, activeSlips:s.active, completedSlips:s.completed,
+      totalRevenue: (s.totalRevenue||0), totalSales:s.salesCount, recentActivity,
+      ghanaRevenue:        s.ghanaRevenue||0,
+      nigeriaRevenue:       s.nigeriaRevenue||0,
+      ghanaSales:           s.ghanaSales||0,
+      nigeriaSales:         s.nigeriaSales||0,
+      todayRevenue:         s.todayRevenue||0,
+      todayGhanaRevenue:    s.todayGhanaRevenue||0,
+      todayNigeriaRevenue:  s.todayNigeriaRevenue||0,
+      todaySales:           s.todaySales||0,
+      weekRevenue:          s.weekRevenue||0,
+      weekSales:            s.weekSales||0,
+      monthRevenue:         s.monthRevenue||0,
+      monthSales:           s.monthSales||0,
+      totalWins:            s.totalWins||0,
+      totalLosses:          s.totalLosses||0,
     }});
   } catch (err) { safeError(res, 500, 'Failed to load stats', err); }
 });
