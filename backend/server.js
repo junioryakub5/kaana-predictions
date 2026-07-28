@@ -13,6 +13,9 @@ const app  = express();
 const PORT = process.env.PORT || 5001;
 const IS_PROD = process.env.NODE_ENV === 'production';
 
+// Trust Nginx reverse proxy — required for correct IP detection behind proxy
+app.set('trust proxy', 1);
+
 // ─── Security: Helmet headers ─────────────────────────────────────────────────
 app.use(helmet({
   contentSecurityPolicy: false, // Let Vercel/Next handle CSP
@@ -41,6 +44,7 @@ const authLimiter = rateLimit({
   message: { error: 'Too many attempts. Try again in 15 minutes.' },
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: (req) => req.ip || req.socket.remoteAddress || 'unknown',
 });
 
 // Payment endpoints: moderate
@@ -50,6 +54,7 @@ const paymentLimiter = rateLimit({
   message: { error: 'Too many payment requests. Please wait a moment.' },
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: (req) => req.ip || req.socket.remoteAddress || 'unknown',
 });
 
 // General API: generous
@@ -59,6 +64,7 @@ const generalLimiter = rateLimit({
   message: { error: 'Rate limit exceeded. Please slow down.' },
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: (req) => req.ip || req.socket.remoteAddress || 'unknown',
 });
 
 app.use('/api/', generalLimiter);
