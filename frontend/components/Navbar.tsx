@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Menu, X, Zap } from "lucide-react";
+import { Menu, X } from "lucide-react";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -31,14 +32,13 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 group">
             <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110 animate-bolt"
+              className="w-9 h-9 rounded-xl overflow-hidden flex-shrink-0 transition-all duration-300 group-hover:scale-110"
               style={{
-                background: "rgba(255,69,0,0.1)",
                 border: "1px solid rgba(255,69,0,0.35)",
                 boxShadow: "0 0 18px rgba(255,69,0,0.3), 0 0 6px rgba(255,69,0,0.15)",
               }}
             >
-              <Zap size={17} style={{ color: "#ff4500" }} strokeWidth={2.5} />
+              <Image src="/logo.png" alt="Kaana Predictions" width={36} height={36} className="w-full h-full object-cover" priority />
             </div>
             <div className="flex flex-col leading-none">
               <span

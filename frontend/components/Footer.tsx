@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Zap } from "lucide-react";
+import Image from "next/image";
 
 export default function Footer() {
   return (
@@ -31,14 +31,13 @@ export default function Footer() {
         {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-4">
           <div
-            className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 animate-bolt"
+            className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0"
             style={{
-              background: "rgba(255,69,0,0.08)",
               border: "1px solid rgba(255,69,0,0.3)",
               boxShadow: "0 0 20px rgba(255,69,0,0.25)",
             }}
           >
-            <Zap size={22} style={{ color: "#ff4500" }} strokeWidth={2.5} />
+            <Image src="/logo.png" alt="Kaana Predictions" width={48} height={48} className="w-full h-full object-cover" />
           </div>
           <div className="flex flex-col text-left">
             <span className="font-display font-bold text-lg" style={{ color: "#f4f4f5" }}>

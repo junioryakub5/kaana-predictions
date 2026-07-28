@@ -8,10 +8,15 @@ export const metadata: Metadata = {
     "Expert football predictions with guaranteed odds. Unlock premium betting slips with 2+, 5+, 10+ odds. Kaana Predictions — bet smarter.",
   keywords:
     "football predictions, betting tips, soccer predictions, betting odds, premium tips, sports betting, Kaana Predictions",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
   openGraph: {
     title: "Kaana Predictions — Premium Football Tips",
     description: "Expert football predictions with guaranteed odds.",
     type: "website",
+    images: [{ url: "/logo.png" }],
   },
 };
 

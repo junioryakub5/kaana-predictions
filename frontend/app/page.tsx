@@ -17,6 +17,7 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PredictionCard from "@/components/PredictionCard";
+import Image from "next/image";
 import { getActivePredictions } from "@/lib/api";
 import { Prediction } from "@/lib/types";
 
@@ -104,6 +105,22 @@ export default function HomePage() {
           />
 
           <div className="page-container text-center relative z-10">
+
+            {/* Logo */}
+            <div className="flex justify-center mb-5 animate-fadeInUp">
+              <div
+                className="relative animate-float"
+                style={{
+                  width: "90px", height: "90px",
+                  borderRadius: "50%",
+                  overflow: "hidden",
+                  boxShadow: "0 0 50px rgba(255,69,0,0.4), 0 0 100px rgba(255,69,0,0.12), 0 0 8px rgba(255,69,0,0.3)",
+                  border: "2px solid rgba(255,69,0,0.4)",
+                }}
+              >
+                <Image src="/logo.png" alt="Kaana Predictions" width={90} height={90} className="w-full h-full object-cover" priority />
+              </div>
+            </div>
 
             {/* Badge */}
             <div className="flex justify-center mb-6 animate-fadeInUp">
