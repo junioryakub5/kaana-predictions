@@ -71,7 +71,7 @@ export default function Navbar() {
 
             {/* Admin CTA */}
             <Link
-              href="/admin"
+              href="/portal"
               className="flex items-center gap-1.5 text-xs font-bold px-4 py-2 transition-all duration-200 hover:scale-105 active:scale-95"
               style={{
                 background: "rgba(255,69,0,0.08)",
@@ -128,7 +128,7 @@ export default function Navbar() {
           ))}
           <div className="pt-1 pb-1">
             <Link
-              href="/admin"
+              href="/portal"
               onClick={() => setMobileOpen(false)}
               className="flex items-center gap-2 text-sm font-bold px-4 py-3 transition-all duration-200"
               style={{
