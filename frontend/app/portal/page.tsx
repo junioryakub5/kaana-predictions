@@ -135,7 +135,11 @@ function OverviewSection({ token }: { token: string }) {
     totalRevenue: number; totalSales: number; recentActivity: RecentActivity[];
     ghanaRevenue: number; nigeriaRevenue: number; ghanaSales: number; nigeriaSales: number;
     todayRevenue?: number; todayGhanaRevenue?: number; todayNigeriaRevenue?: number; todaySales?: number;
-    weekRevenue?: number; weekSales?: number; monthRevenue?: number; monthSales?: number;
+    todayGhanaSales?: number; todayNigeriaSales?: number;
+    weekRevenue?: number; weekGhanaRevenue?: number; weekNigeriaRevenue?: number;
+    weekSales?: number; weekGhanaSales?: number; weekNigeriaSales?: number;
+    monthRevenue?: number; monthGhanaRevenue?: number; monthNigeriaRevenue?: number;
+    monthSales?: number; monthGhanaSales?: number; monthNigeriaSales?: number;
     totalWins?: number; totalLosses?: number;
   } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -160,10 +164,21 @@ function OverviewSection({ token }: { token: string }) {
   const todayGhanaRevenue   = stats.todayGhanaRevenue   ?? 0;
   const todayNigeriaRevenue = stats.todayNigeriaRevenue ?? 0;
   const todaySales          = stats.todaySales          ?? 0;
+  const todayGhanaSales     = stats.todayGhanaSales     ?? 0;
+  const todayNigeriaSales   = stats.todayNigeriaSales   ?? 0;
   const weekRevenue         = stats.weekRevenue         ?? 0;
+  const weekGhanaRevenue    = stats.weekGhanaRevenue    ?? 0;
+  const weekNigeriaRevenue  = stats.weekNigeriaRevenue  ?? 0;
   const weekSales           = stats.weekSales           ?? 0;
+  const weekGhanaSales      = stats.weekGhanaSales      ?? 0;
+  const weekNigeriaSales    = stats.weekNigeriaSales    ?? 0;
   const monthRevenue        = stats.monthRevenue        ?? 0;
+  const monthGhanaRevenue   = stats.monthGhanaRevenue   ?? 0;
+  const monthNigeriaRevenue = stats.monthNigeriaRevenue ?? 0;
   const monthSales          = stats.monthSales          ?? 0;
+  const monthGhanaSales     = stats.monthGhanaSales     ?? 0;
+  const monthNigeriaSales   = stats.monthNigeriaSales   ?? 0;
+  void todayRevenue; void weekRevenue; void monthRevenue;
 
   const fmtTime = (iso: string) => {
     const d = new Date(iso);
@@ -203,20 +218,20 @@ function OverviewSection({ token }: { token: string }) {
               </div>
               <p style={{ fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,69,0,0.8)" }}>Income Today</p>
             </div>
-            <div style={{ fontWeight: 900, fontSize: "2rem", color: "#ff4500", lineHeight: 1, marginBottom: 6 }}>
-              GHS {todayRevenue.toFixed(2)}
-            </div>
-            <p style={{ fontSize: "0.72rem", color: "#52525b", marginBottom: 14 }}>
-              {todaySales} sale{todaySales !== 1 ? "s" : ""} today
+            <p style={{ fontSize: "0.65rem", color: "#52525b", marginBottom: 12 }}>
+              {todaySales} sale{todaySales !== 1 ? "s" : ""} today · {todayGhanaSales} 🇬🇭 · {todayNigeriaSales} 🇳🇬
             </p>
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span style={{ fontSize: "0.7rem", color: "#52525b" }}>🇬🇭 Ghana (Paystack)</span>
-                <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#22c55e" }}>GHS {todayGhanaRevenue.toFixed(2)}</span>
+            {/* Split: Ghana | Nigeria */}
+            <div className="grid grid-cols-2 gap-3">
+              <div style={{ background: "rgba(34,197,94,0.07)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 10, padding: "10px 12px" }}>
+                <div style={{ fontSize: "0.6rem", color: "rgba(34,197,94,0.7)", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 4 }}>🇬🇭 Ghana</div>
+                <div style={{ fontWeight: 900, fontSize: "1.25rem", color: "#22c55e", lineHeight: 1 }}>GHS {todayGhanaRevenue.toFixed(2)}</div>
+                <div style={{ fontSize: "0.6rem", color: "#3f3f46", marginTop: 3 }}>{todayGhanaSales} sale{todayGhanaSales !== 1 ? "s" : ""}</div>
               </div>
-              <div className="flex justify-between items-center">
-                <span style={{ fontSize: "0.7rem", color: "#52525b" }}>🇳🇬 Nigeria (Flutterwave)</span>
-                <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#ff4500" }}>₦{todayNigeriaRevenue.toLocaleString()}</span>
+              <div style={{ background: "rgba(255,69,0,0.07)", border: "1px solid rgba(255,69,0,0.2)", borderRadius: 10, padding: "10px 12px" }}>
+                <div style={{ fontSize: "0.6rem", color: "rgba(255,69,0,0.7)", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 4 }}>🇳🇬 Nigeria</div>
+                <div style={{ fontWeight: 900, fontSize: "1.25rem", color: "#ff4500", lineHeight: 1 }}>₦{todayNigeriaRevenue.toLocaleString()}</div>
+                <div style={{ fontSize: "0.6rem", color: "#3f3f46", marginTop: 3 }}>{todayNigeriaSales} sale{todayNigeriaSales !== 1 ? "s" : ""}</div>
               </div>
             </div>
           </div>
@@ -224,51 +239,73 @@ function OverviewSection({ token }: { token: string }) {
 
         {/* This Week */}
         <div className="rounded-2xl p-5" style={{ background: "rgba(28,25,23,0.9)", border: "1px solid rgba(255,69,0,0.12)", backdropFilter: "blur(10px)" }}>
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-3">
             <div style={{ width: 32, height: 32, borderRadius: 10, background: "rgba(255,69,0,0.08)", border: "1px solid rgba(255,69,0,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <TrendingUp size={16} style={{ color: "#ff4500" }} />
             </div>
             <p style={{ fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,69,0,0.7)" }}>This Week</p>
           </div>
-          <div style={{ fontWeight: 800, fontSize: "1.7rem", color: "#ff5722", lineHeight: 1, marginBottom: 6 }}>
-            GHS {weekRevenue.toFixed(2)}
+          <p style={{ fontSize: "0.65rem", color: "#52525b", marginBottom: 12 }}>
+            {weekSales} sales · last 7 days · {weekGhanaSales} 🇬🇭 · {weekNigeriaSales} 🇳🇬
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div style={{ background: "rgba(34,197,94,0.07)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 10, padding: "10px 12px" }}>
+              <div style={{ fontSize: "0.6rem", color: "rgba(34,197,94,0.7)", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 4 }}>🇬🇭 Ghana</div>
+              <div style={{ fontWeight: 800, fontSize: "1.1rem", color: "#22c55e", lineHeight: 1 }}>GHS {weekGhanaRevenue.toFixed(2)}</div>
+              <div style={{ fontSize: "0.6rem", color: "#3f3f46", marginTop: 3 }}>{weekGhanaSales} sale{weekGhanaSales !== 1 ? "s" : ""}</div>
+            </div>
+            <div style={{ background: "rgba(255,69,0,0.07)", border: "1px solid rgba(255,69,0,0.2)", borderRadius: 10, padding: "10px 12px" }}>
+              <div style={{ fontSize: "0.6rem", color: "rgba(255,69,0,0.7)", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 4 }}>🇳🇬 Nigeria</div>
+              <div style={{ fontWeight: 800, fontSize: "1.1rem", color: "#ff5722", lineHeight: 1 }}>₦{weekNigeriaRevenue.toLocaleString()}</div>
+              <div style={{ fontSize: "0.6rem", color: "#3f3f46", marginTop: 3 }}>{weekNigeriaSales} sale{weekNigeriaSales !== 1 ? "s" : ""}</div>
+            </div>
           </div>
-          <p style={{ fontSize: "0.72rem", color: "#52525b" }}>{weekSales} sales · last 7 days</p>
-          <div style={{ marginTop: 16, height: 3, borderRadius: 4, background: "rgba(255,69,0,0.1)" }}>
+          <div style={{ marginTop: 14, height: 3, borderRadius: 4, background: "rgba(255,69,0,0.1)" }}>
             <div style={{
               height: "100%", borderRadius: 4,
               background: "linear-gradient(90deg, #c9a84c, #d4a844)",
-              width: stats.totalRevenue > 0 ? `${Math.min(100, (weekRevenue / stats.totalRevenue) * 100)}%` : "0%",
+              width: stats.ghanaRevenue > 0 ? `${Math.min(100, (weekGhanaRevenue / stats.ghanaRevenue) * 100)}%` : "0%",
               transition: "width 0.6s ease",
             }} />
           </div>
           <p style={{ fontSize: "0.65rem", color: "#3f3f46", marginTop: 4 }}>
-            {stats.totalRevenue > 0 ? Math.round((weekRevenue / stats.totalRevenue) * 100) : 0}% of all-time
+            {stats.ghanaRevenue > 0 ? Math.round((weekGhanaRevenue / stats.ghanaRevenue) * 100) : 0}% of all-time GHS
           </p>
         </div>
 
         {/* This Month */}
         <div className="rounded-2xl p-5" style={{ background: "rgba(28,25,23,0.9)", border: "1px solid rgba(255,69,0,0.12)", backdropFilter: "blur(10px)" }}>
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-3">
             <div style={{ width: 32, height: 32, borderRadius: 10, background: "rgba(255,69,0,0.08)", border: "1px solid rgba(255,69,0,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <BarChart2 size={16} style={{ color: "#ff4500" }} />
             </div>
             <p style={{ fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,69,0,0.7)" }}>This Month</p>
           </div>
-          <div style={{ fontWeight: 800, fontSize: "1.7rem", color: "#ff5722", lineHeight: 1, marginBottom: 6 }}>
-            GHS {monthRevenue.toFixed(2)}
+          <p style={{ fontSize: "0.65rem", color: "#52525b", marginBottom: 12 }}>
+            {monthSales} sales · current month · {monthGhanaSales} 🇬🇭 · {monthNigeriaSales} 🇳🇬
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div style={{ background: "rgba(34,197,94,0.07)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 10, padding: "10px 12px" }}>
+              <div style={{ fontSize: "0.6rem", color: "rgba(34,197,94,0.7)", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 4 }}>🇬🇭 Ghana</div>
+              <div style={{ fontWeight: 800, fontSize: "1.1rem", color: "#22c55e", lineHeight: 1 }}>GHS {monthGhanaRevenue.toFixed(2)}</div>
+              <div style={{ fontSize: "0.6rem", color: "#3f3f46", marginTop: 3 }}>{monthGhanaSales} sale{monthGhanaSales !== 1 ? "s" : ""}</div>
+            </div>
+            <div style={{ background: "rgba(255,69,0,0.07)", border: "1px solid rgba(255,69,0,0.2)", borderRadius: 10, padding: "10px 12px" }}>
+              <div style={{ fontSize: "0.6rem", color: "rgba(255,69,0,0.7)", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 4 }}>🇳🇬 Nigeria</div>
+              <div style={{ fontWeight: 800, fontSize: "1.1rem", color: "#ff5722", lineHeight: 1 }}>₦{monthNigeriaRevenue.toLocaleString()}</div>
+              <div style={{ fontSize: "0.6rem", color: "#3f3f46", marginTop: 3 }}>{monthNigeriaSales} sale{monthNigeriaSales !== 1 ? "s" : ""}</div>
+            </div>
           </div>
-          <p style={{ fontSize: "0.72rem", color: "#52525b" }}>{monthSales} sales · current month</p>
-          <div style={{ marginTop: 16, height: 3, borderRadius: 4, background: "rgba(255,69,0,0.1)" }}>
+          <div style={{ marginTop: 14, height: 3, borderRadius: 4, background: "rgba(255,69,0,0.1)" }}>
             <div style={{
               height: "100%", borderRadius: 4,
               background: "linear-gradient(90deg, #c9a84c, #d4a844)",
-              width: stats.totalRevenue > 0 ? `${Math.min(100, (monthRevenue / stats.totalRevenue) * 100)}%` : "0%",
+              width: stats.ghanaRevenue > 0 ? `${Math.min(100, (monthGhanaRevenue / stats.ghanaRevenue) * 100)}%` : "0%",
               transition: "width 0.6s ease",
             }} />
           </div>
           <p style={{ fontSize: "0.65rem", color: "#3f3f46", marginTop: 4 }}>
-            {stats.totalRevenue > 0 ? Math.round((monthRevenue / stats.totalRevenue) * 100) : 0}% of all-time
+            {stats.ghanaRevenue > 0 ? Math.round((monthGhanaRevenue / stats.ghanaRevenue) * 100) : 0}% of all-time GHS
           </p>
         </div>
       </div>

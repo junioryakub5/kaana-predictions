@@ -240,12 +240,20 @@ const db = {
   },
   async createPayment(data) {
     if (supabase) {
-      const { data: d, error } = await supabase.from('payments').insert({
+      const insertRow = {
         prediction_id:data.predictionId, prediction_title:data.predictionTitle,
         reference:data.reference, email:data.email.toLowerCase().trim(),
         amount:data.amount, currency:data.currency||'GHS',
         status:data.status, access_token:data.accessToken||uuidv4(), provider:data.provider||'paystack',
-      }).select().single();
+      };
+      let { data: d, error } = await supabase.from('payments').insert(insertRow).select().single();
+      // Graceful fallback: if 'provider' column doesn't exist yet, retry without it
+      if (error && (error.message?.includes('provider') || error.code === '42703')) {
+        console.warn('⚠️  provider column missing — run migration. Retrying without it.');
+        const { provider: _omit, ...rowWithoutProvider } = insertRow;
+        const res2 = await supabase.from('payments').insert(rowWithoutProvider).select().single();
+        d = res2.data; error = res2.error;
+      }
       if (error) throw error;
       return toMoney(d);
     }
@@ -320,10 +328,20 @@ const db = {
         todayGhanaRevenue:   sum(todayPayments.filter(p => p.provider !== 'flutterwave')),
         todayNigeriaRevenue: sum(todayPayments.filter(p => p.provider === 'flutterwave')),
         todaySales:          todayPayments.length,
+        todayGhanaSales:     todayPayments.filter(p => p.provider !== 'flutterwave').length,
+        todayNigeriaSales:   todayPayments.filter(p => p.provider === 'flutterwave').length,
         weekRevenue:         sum(weekPayments.filter(p => p.provider !== 'flutterwave')),
+        weekGhanaRevenue:    sum(weekPayments.filter(p => p.provider !== 'flutterwave')),
+        weekNigeriaRevenue:  sum(weekPayments.filter(p => p.provider === 'flutterwave')),
         weekSales:           weekPayments.length,
+        weekGhanaSales:      weekPayments.filter(p => p.provider !== 'flutterwave').length,
+        weekNigeriaSales:    weekPayments.filter(p => p.provider === 'flutterwave').length,
         monthRevenue:        sum(monthPayments.filter(p => p.provider !== 'flutterwave')),
+        monthGhanaRevenue:   sum(monthPayments.filter(p => p.provider !== 'flutterwave')),
+        monthNigeriaRevenue: sum(monthPayments.filter(p => p.provider === 'flutterwave')),
         monthSales:          monthPayments.length,
+        monthGhanaSales:     monthPayments.filter(p => p.provider !== 'flutterwave').length,
+        monthNigeriaSales:   monthPayments.filter(p => p.provider === 'flutterwave').length,
         totalWins:           totalWins || 0,
         totalLosses:         totalLosses || 0,
       };
@@ -349,8 +367,20 @@ const db = {
       ghanaSales:ghPayments.length, nigeriaSales:ngPayments.length,
       todayRevenue:sum(todayPay), todayGhanaRevenue:sum(todayPay.filter(p=>p.provider!=='flutterwave')),
       todayNigeriaRevenue:sum(todayPay.filter(p=>p.provider==='flutterwave')), todaySales:todayPay.length,
-      weekRevenue:sum(weekPay.filter(p=>p.provider!=='flutterwave')), weekSales:weekPay.length,
-      monthRevenue:sum(monthPay.filter(p=>p.provider!=='flutterwave')), monthSales:monthPay.length,
+      todayGhanaSales:todayPay.filter(p=>p.provider!=='flutterwave').length,
+      todayNigeriaSales:todayPay.filter(p=>p.provider==='flutterwave').length,
+      weekRevenue:sum(weekPay.filter(p=>p.provider!=='flutterwave')),
+      weekGhanaRevenue:sum(weekPay.filter(p=>p.provider!=='flutterwave')),
+      weekNigeriaRevenue:sum(weekPay.filter(p=>p.provider==='flutterwave')),
+      weekSales:weekPay.length,
+      weekGhanaSales:weekPay.filter(p=>p.provider!=='flutterwave').length,
+      weekNigeriaSales:weekPay.filter(p=>p.provider==='flutterwave').length,
+      monthRevenue:sum(monthPay.filter(p=>p.provider!=='flutterwave')),
+      monthGhanaRevenue:sum(monthPay.filter(p=>p.provider!=='flutterwave')),
+      monthNigeriaRevenue:sum(monthPay.filter(p=>p.provider==='flutterwave')),
+      monthSales:monthPay.length,
+      monthGhanaSales:monthPay.filter(p=>p.provider!=='flutterwave').length,
+      monthNigeriaSales:monthPay.filter(p=>p.provider==='flutterwave').length,
       totalWins:memPredictions.filter(p=>p.result==='win').length,
       totalLosses:memPredictions.filter(p=>p.result==='loss').length,
     };
@@ -806,10 +836,20 @@ app.get('/api/admin/stats', adminAuth, async (req, res) => {
       todayGhanaRevenue:    s.todayGhanaRevenue||0,
       todayNigeriaRevenue:  s.todayNigeriaRevenue||0,
       todaySales:           s.todaySales||0,
+      todayGhanaSales:      s.todayGhanaSales||0,
+      todayNigeriaSales:    s.todayNigeriaSales||0,
       weekRevenue:          s.weekRevenue||0,
+      weekGhanaRevenue:     s.weekGhanaRevenue||0,
+      weekNigeriaRevenue:   s.weekNigeriaRevenue||0,
       weekSales:            s.weekSales||0,
+      weekGhanaSales:       s.weekGhanaSales||0,
+      weekNigeriaSales:     s.weekNigeriaSales||0,
       monthRevenue:         s.monthRevenue||0,
+      monthGhanaRevenue:    s.monthGhanaRevenue||0,
+      monthNigeriaRevenue:  s.monthNigeriaRevenue||0,
       monthSales:           s.monthSales||0,
+      monthGhanaSales:      s.monthGhanaSales||0,
+      monthNigeriaSales:    s.monthNigeriaSales||0,
       totalWins:            s.totalWins||0,
       totalLosses:          s.totalLosses||0,
     }});
